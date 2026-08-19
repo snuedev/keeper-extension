@@ -1,16 +1,9 @@
-// One place where the Firebase app is created. Everything else imports `auth`
-// and `db` from here, so the app is only ever initialized once.
-//
-// About the API key below: it is not a secret and it is not a password. A
-// Firebase web API key only identifies which project a request belongs to — it
-// ships in the page source of every Firebase web app there is. What actually
-// keeps one person's notes away from another is the Firestore security rules
-// plus Authentication.
-
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+// A Firebase web API key identifies the project rather than authenticating it,
+// and is meant to ship in client code. Access is controlled by firestore.rules.
 const firebaseConfig = {
   apiKey: 'AIzaSyCEIGUChToGQwsiQ00FuA8oHeXNiryayyY',
   authDomain: 'keeperext.firebaseapp.com',
@@ -22,12 +15,5 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// getAuth() defaults to storing the session in IndexedDB, scoped to this
-// extension's own origin. That is what keeps you signed in after the popup
-// closes and after the browser restarts, and it refreshes the expiring token on
-// its own. Do not try to cache tokens in chrome.storage by hand — the SDK
-// already does this correctly, and ID tokens expire after an hour.
 export const auth = getAuth(app);
-
-// The notes database. lib/notes.js is the only file that touches it directly.
 export const db = getFirestore(app);

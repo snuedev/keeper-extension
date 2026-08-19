@@ -1,10 +1,3 @@
-// The sign-in / create-account panel. Shown whenever nobody is signed in.
-//
-// Every view in this project follows the same shape: a single exported function
-// that takes the element to draw into, fills it, and wires up its own event
-// listeners. Switching views means calling a different one of these — the old
-// markup and the listeners attached to it go away together.
-
 import { describeAuthError, signIn, signUp } from '../lib/auth.js';
 
 export function renderAuthView(container) {
@@ -55,8 +48,6 @@ export function renderAuthView(container) {
   const buttons = form.querySelectorAll('button');
 
   function showError(message) {
-    // textContent, never innerHTML: anything that came from outside this file
-    // is treated as text, so a stray "<" can never turn into markup.
     errorText.textContent = message;
     errorText.hidden = false;
   }
@@ -67,15 +58,11 @@ export function renderAuthView(container) {
   }
 
   function setBusy(isBusy) {
-    // These are network calls. Without this you can fire off three sign-ins by
-    // impatiently clicking three times.
     buttons.forEach((button) => {
       button.disabled = isBusy;
     });
   }
 
-  // `attempt` is either signIn or signUp. Both take (email, password) and both
-  // return a promise, so one handler covers both buttons.
   async function submit(attempt) {
     clearError();
 
@@ -90,8 +77,6 @@ export function renderAuthView(container) {
     setBusy(true);
     try {
       await attempt(email, password);
-      // Nothing to do on success. The auth listener in popup.js notices the new
-      // user and swaps this view out for the list.
     } catch (error) {
       showError(describeAuthError(error));
       setBusy(false);
@@ -99,9 +84,6 @@ export function renderAuthView(container) {
   }
 
   form.addEventListener('submit', (event) => {
-    // Without this the browser tries to submit the form somewhere and navigates
-    // the popup to a dead URL. There is no server here — every form in an
-    // extension needs this line.
     event.preventDefault();
     submit(signIn);
   });
@@ -110,7 +92,6 @@ export function renderAuthView(container) {
     .querySelector('[data-action="sign-up"]')
     .addEventListener('click', () => submit(signUp));
 
-  // Typing is the user's way of saying "I know, I'm fixing it".
   form.addEventListener('input', clearError);
 
   emailInput.focus();

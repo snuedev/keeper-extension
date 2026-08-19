@@ -1,9 +1,3 @@
-// Thin wrappers over the four Firebase Auth calls the popup needs, plus a
-// translator that turns Firebase's error codes into something a person can read.
-//
-// The wrappers exist so that no view file imports from 'firebase/auth'
-// directly. If the auth provider ever changes, this is the only file to touch.
-
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -25,22 +19,13 @@ export function signOutUser() {
   return signOut(auth);
 }
 
-// Fires once shortly after the popup opens — with a user object or with null —
-// and then again on every sign-in and sign-out. That single callback is what
-// decides which view you are looking at.
-//
-// Returns an unsubscribe function. The popup never calls it (the whole page is
-// thrown away when the popup closes), but returning it keeps this wrapper
-// honest about what the SDK gives back.
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-// Firebase ships email-enumeration protection on by default, which means a
-// wrong password and an email that was never registered both come back as
-// 'auth/invalid-credential'. That is deliberate — it stops people probing your
-// project to find out which email addresses have accounts. So there is one
-// message covering both, and no attempt to guess which happened.
+// Firebase's email-enumeration protection reports a wrong password and an
+// unregistered email identically as 'auth/invalid-credential', so the two
+// cannot be told apart here and deliberately share one message.
 const MESSAGES = {
   'auth/invalid-credential': 'Email or password is incorrect.',
   'auth/invalid-email': 'That does not look like an email address.',
