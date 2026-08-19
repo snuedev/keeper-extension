@@ -1,22 +1,24 @@
 // Entry point for the popup page.
 //
-// Phase 0 only proves the build pipeline works: bundle, load the unpacked
-// extension, click the icon, see something. Phase 1 replaces the body of
-// render() with the onAuthStateChanged switch between the loading, auth and
-// list views described in the plan.
+// The whole of the popup's routing is one subscription: Firebase tells us
+// whether somebody is signed in, and that decides which view gets drawn. No
+// view ever swaps itself — they trigger a sign-in or a sign-out and let the
+// callback below do the swapping. That way there is exactly one place that
+// decides what is on screen.
+
+import { onAuthChange } from './lib/auth.js';
+import { renderAuthView } from './views/auth-view.js';
+import { renderListView } from './views/list-view.js';
 
 const app = document.querySelector('#app');
 
-function render() {
-  app.innerHTML = `
-    <header class="header">
-      <h1 class="header__title">Keeper</h1>
-    </header>
-    <main class="panel">
-      <p class="panel__message">The build pipeline works.</p>
-      <p class="panel__hint">Sign-in lands in Phase 1.</p>
-    </main>
-  `;
-}
-
-render();
+// Remember: the popup page is destroyed the moment the popup closes. Nothing in
+// this file survives that, which is why there is no state to clean up and why
+// anything worth keeping has to live in Firestore.
+onAuthChange((user) => {
+  if (user) {
+    renderListView(app, user);
+  } else {
+    renderAuthView(app);
+  }
+});

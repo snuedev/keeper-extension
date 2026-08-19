@@ -6,6 +6,8 @@
   --pink: #ffc5d3;
   --ink: #1a1a1a;
   --muted: #6b6b6b;
+  --line: rgba(0, 0, 0, 0.1);
+  --danger: #8c1c34;
 }
 
 * {
@@ -25,7 +27,15 @@ body {
 
 .header {
   padding: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Title on the left, an action on the right. */
+.header--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .header__title {
@@ -47,4 +57,114 @@ body {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
+}
+
+.panel__error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* Forms */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Each field is a <label> wrapping its own input, so clicking the word "Email"
+   focuses the box. That is free with this markup and needs no `for` attribute
+   or matching id. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.field__input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background-color: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.field__input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.form__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.form__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+
+.button {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.button--primary {
+  background-color: var(--ink);
+  color: #fff;
+}
+
+.button--primary:hover:not(:disabled) {
+  background-color: #333;
+}
+
+/* A secondary action that should not compete with the content. */
+.button--quiet {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-color: transparent;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+/* Footer */
+
+.footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.footer__account {
+  color: var(--muted);
+  font-size: 12px;
+  /* Long email addresses would otherwise push the popup wider than 360px. */
+  word-break: break-all;
 }
