@@ -27,6 +27,17 @@ export function renderAuthView(container) {
     <main class="panel">
       <p class="panel__hint">Sign in, or create an account to get started.</p>
 
+      <button
+        class="button button--google"
+        type="button"
+        data-action="google"
+      >
+        ${GOOGLE_MARK}
+        Continue with Google
+      </button>
+
+      <p class="divider">or</p>
+
       <form class="form" novalidate>
         <label class="field">
           <span class="field__label">Email</span>
@@ -58,16 +69,6 @@ export function renderAuthView(container) {
         </div>
       </form>
 
-      <p class="divider">or</p>
-
-      <button
-        class="button button--google"
-        type="button"
-        data-action="google"
-      >
-        ${GOOGLE_MARK}
-        Continue with Google
-      </button>
     </main>
   `;
 

@@ -45,10 +45,8 @@ body {
   margin: 0;
   background-color: var(--ground);
   color: var(--ink);
-  /* Liberation Serif is the metric-compatible stand-in shipped by Linux
-     distributions, which have no Times New Roman of their own. */
-  font-family: "Times New Roman", Times, "Liberation Serif", serif;
-  font-size: 15px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -82,8 +80,8 @@ body.in-tab {
 
 .header__title {
   margin: 0;
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 
@@ -247,6 +245,7 @@ body.in-tab {
   align-items: center;
   justify-content: center;
   gap: 9px;
+  margin-top: 18px;
 }
 
 .button--google svg {
@@ -257,7 +256,7 @@ body.in-tab {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 16px 0 4px;
+  margin: 16px 0 0;
   color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.06em;
@@ -282,13 +281,10 @@ body.in-tab {
   font-weight: 500;
 }
 
-/* The theme glyphs have no Times New Roman shapes and would fall back to
-   whatever font does carry them, at an unpredictable size. */
 .button--icon {
   flex: 0 0 auto;
   width: 28px;
   padding: 5px 0;
-  font-family: system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.25;
   text-align: center;

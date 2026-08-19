@@ -307,13 +307,8 @@ Sign out and back in — still there. Two accounts can't see each other's notes.
   for when the popup is too cramped
 - Ctrl/Cmd+S to save now
 
-### Phase 4 — Look and sign-in
+### Phase 4 — Theme and Google sign-in
 
-- **Times New Roman throughout.** One `font-family` on `body`; everything else
-  already inherits it. `"Liberation Serif"` sits in the stack behind it for
-  Linux, which ships no Times New Roman but does ship a clone with identical
-  letter widths. Base size goes 14px → 15px: Times has a smaller x-height than
-  the system sans it replaced, so the same number reads noticeably smaller.
 - **A light / dark toggle**, cycling system → light → dark and back, stored in
   `chrome.storage.local`. The palette moves to CSS's `light-dark()` so each
   colour is written once instead of twice, and `data-theme` on `<html>` only has
