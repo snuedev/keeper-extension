@@ -12,15 +12,22 @@ const storage = globalThis.chrome?.storage?.local ?? null;
 // order and leave a draft behind for a note that saved cleanly.
 let writes = Promise.resolve();
 
+// The chain swallows failures so one bad write cannot stall every write after
+// it, but the returned promise still rejects for callers that need to know.
 function queue(work) {
-  writes = writes.then(work).catch(() => {});
-  return writes;
+  const result = writes.then(work);
+  writes = result.catch(() => {});
+  return result;
+}
+
+function queueQuietly(work) {
+  return queue(work).catch(() => {});
 }
 
 export function saveDraft(uid, noteId, draft) {
   if (!storage) return Promise.resolve();
 
-  return queue(() =>
+  return queueQuietly(() =>
     storage.set({
       [keyFor(uid, noteId)]: { ...draft, at: Date.now() },
     }),
@@ -41,7 +48,7 @@ export async function readDraft(uid, noteId) {
 
 export function clearDraft(uid, noteId) {
   if (!storage) return Promise.resolve();
-  return queue(() => storage.remove(keyFor(uid, noteId)));
+  return queueQuietly(() => storage.remove(keyFor(uid, noteId)));
 }
 
 export function clearDraftsFor(uid) {

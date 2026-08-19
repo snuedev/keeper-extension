@@ -1,16 +1,7 @@
 import { clearDraft, readDraft, saveDraft } from '../lib/drafts.js';
-import {
-  deleteNote,
-  describeNotesError,
-  updateNote,
-  updatedMillis,
-} from '../lib/notes.js';
+import { deleteNote, describeNotesError, updateNote } from '../lib/notes.js';
 
 const SAVE_DELAY_MS = 800;
-
-// A draft is stamped by this machine's clock and updatedAt by Firestore's, so
-// a remote edit is only treated as newer when it is newer by a clear margin.
-const STALE_SLACK_MS = 60 * 1000;
 
 export function renderEditorView(container, user, note, { onBack }) {
   container.innerHTML = `
@@ -83,6 +74,12 @@ export function renderEditorView(container, user, note, { onBack }) {
   let deleted = false;
   let torndown = false;
 
+  // What Firestore is believed to hold, updated as writes succeed. A draft
+  // records this alongside the text, so a restore can tell "nobody else touched
+  // this" from "someone edited it elsewhere" without comparing a local clock
+  // against Firestore's.
+  let saved = { title: titleInput.value, body: bodyInput.value };
+
   function setStatus(message) {
     statusText.textContent = message;
   }
@@ -121,6 +118,7 @@ export function renderEditorView(container, user, note, { onBack }) {
     try {
       await updateNote(user.uid, note.id, fields);
       clearError();
+      saved = { ...saved, ...fields };
 
       const stillTyping = Object.keys(unsaved).length > 0;
 
@@ -147,6 +145,7 @@ export function renderEditorView(container, user, note, { onBack }) {
     saveDraft(user.uid, note.id, {
       title: titleInput.value,
       body: bodyInput.value,
+      base: saved,
     });
 
     clearTimeout(saveTimer);
@@ -213,7 +212,9 @@ export function renderEditorView(container, user, note, { onBack }) {
   // with the note still in it.
   function handleShortcut(event) {
     if (!(event.ctrlKey || event.metaKey)) return;
-    if (event.key.toLowerCase() !== 's') return;
+    // Synthetic keydowns from password managers and some IMEs arrive with no
+    // key at all.
+    if (event.key?.toLowerCase() !== 's') return;
 
     event.preventDefault();
     saveNow();
@@ -225,23 +226,29 @@ export function renderEditorView(container, user, note, { onBack }) {
     const draft = await readDraft(user.uid, note.id);
     if (!draft || deleted || torndown) return;
 
-    const savedTitle = note.title ?? '';
-    const savedBody = note.body ?? '';
+    const remote = { title: note.title ?? '', body: note.body ?? '' };
 
     const typedSinceOpen =
-      titleInput.value !== savedTitle || bodyInput.value !== savedBody;
+      titleInput.value !== remote.title || bodyInput.value !== remote.body;
     if (typedSinceOpen) return;
 
     const draftTitle = draft.title ?? '';
     const draftBody = draft.body ?? '';
 
-    const alreadySaved = draftTitle === savedTitle && draftBody === savedBody;
-    const savedAt = updatedMillis(note);
-    const supersededElsewhere =
-      savedAt != null && savedAt > (draft.at ?? 0) + STALE_SLACK_MS;
-
-    if (alreadySaved || supersededElsewhere) {
+    if (draftTitle === remote.title && draftBody === remote.body) {
       clearDraft(user.uid, note.id);
+      return;
+    }
+
+    // The note moved on after this draft was taken, so something else — another
+    // window, another machine — has written to it since. Applying the draft
+    // would silently throw that away, so the stored version stays on screen and
+    // the draft stays on disk rather than either being destroyed.
+    const base = draft.base ?? remote;
+    if (base.title !== remote.title || base.body !== remote.body) {
+      showError(
+        'This note changed somewhere else, so your unsaved copy was not applied.',
+      );
       return;
     }
 

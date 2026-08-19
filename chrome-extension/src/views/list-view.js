@@ -1,5 +1,4 @@
 import { describeAuthError, signOutUser } from '../lib/auth.js';
-import { clearDraftsFor } from '../lib/drafts.js';
 import {
   createNote,
   describeNotesError,
@@ -34,7 +33,14 @@ export function renderListView(container, user, { onOpenNote }) {
 
       <p class="panel__error" role="alert" hidden></p>
 
-      <ul class="notes" aria-live="polite"></ul>
+      <!--
+        The count is announced instead of the list itself: the list is rebuilt
+        on every search keystroke, and a live region on it would read all of
+        the notes out again each time.
+      -->
+      <p class="visually-hidden" role="status"></p>
+
+      <ul class="notes"></ul>
 
       <p class="panel__hint notes__empty" hidden></p>
     </main>
@@ -50,6 +56,7 @@ export function renderListView(container, user, { onOpenNote }) {
     user.email ?? 'Signed in';
 
   const list = container.querySelector('.notes');
+  const announcement = container.querySelector('[role="status"]');
   const searchInput = container.querySelector('.search');
   const emptyMessage = container.querySelector('.notes__empty');
   const errorText = container.querySelector('.panel__error');
@@ -100,9 +107,6 @@ export function renderListView(container, user, { onOpenNote }) {
 
     const time = document.createElement('span');
     time.className = 'note__time';
-    // Opts these out of the surrounding aria-live region, which would otherwise
-    // announce every minute as the clock rewrites them.
-    time.setAttribute('aria-live', 'off');
     const millis = updatedMillis(note);
     time.dataset.millis = millis ?? '';
     time.textContent = relativeTime(millis);
@@ -120,7 +124,15 @@ export function renderListView(container, user, { onOpenNote }) {
   }
 
   function draw() {
-    const term = searchInput.value.trim().toLowerCase();
+    // A hidden box cannot be cleared by hand, and a term left in it would go on
+    // filtering the next note that arrives.
+    if (allNotes.length === 0) {
+      searchInput.value = '';
+    }
+    searchInput.hidden = allNotes.length === 0;
+
+    const query = searchInput.value.trim();
+    const term = query.toLowerCase();
     const visible = term
       ? allNotes.filter((note) => matches(note, term))
       : allNotes;
@@ -128,17 +140,19 @@ export function renderListView(container, user, { onOpenNote }) {
     list.replaceChildren(...visible.map(buildCard));
     timeCells = [...list.querySelectorAll('.note__time')];
 
-    searchInput.hidden = allNotes.length === 0;
-
     if (visible.length > 0) {
       emptyMessage.hidden = true;
     } else if (allNotes.length === 0) {
       emptyMessage.textContent = 'Nothing here yet. Write your first note.';
       emptyMessage.hidden = false;
     } else {
-      emptyMessage.textContent = `No notes match “${searchInput.value.trim()}”.`;
+      emptyMessage.textContent = `No notes match “${query}”.`;
       emptyMessage.hidden = false;
     }
+
+    announcement.textContent = emptyMessage.hidden
+      ? `${visible.length} ${visible.length === 1 ? 'note' : 'notes'}`
+      : emptyMessage.textContent;
   }
 
   searchInput.addEventListener('input', draw);
@@ -160,7 +174,6 @@ export function renderListView(container, user, { onOpenNote }) {
   signOutButton.addEventListener('click', async () => {
     signOutButton.disabled = true;
     try {
-      await clearDraftsFor(user.uid);
       await signOutUser();
     } catch (error) {
       showError(describeAuthError(error));
