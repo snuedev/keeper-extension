@@ -29,5 +29,5 @@ const app = initializeApp(firebaseConfig);
 // already does this correctly, and ID tokens expire after an hour.
 export const auth = getAuth(app);
 
-// Not used until Phase 2 (notes), but this is the file that owns it.
+// The notes database. lib/notes.js is the only file that touches it directly.
 export const db = getFirestore(app);

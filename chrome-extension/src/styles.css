@@ -16,7 +16,11 @@
 
 body {
   width: 360px;
-  min-height: 400px;
+  /* A fixed height rather than a minimum, so the panel does not jump between a
+     short sign-in screen and a long list of notes. 500px is close to the tallest
+     a Chrome popup is allowed to be (600px), and it gives the editor's textarea
+     room to be worth typing in. */
+  height: 500px;
   margin: 0;
   background-color: var(--pink);
   color: var(--ink);
@@ -44,8 +48,21 @@ body {
   font-weight: 600;
 }
 
+/* Header, panel, footer stacked top to bottom, with the panel taking whatever
+   height is left over. That is what pins the footer to the bottom of the popup
+   instead of letting it float up under a short list. */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .panel {
+  flex: 1;
   padding: 16px;
+  /* Twenty notes are taller than the popup. Scroll the middle, not the page,
+     so the header and footer stay put. */
+  overflow-y: auto;
 }
 
 .panel__message {
@@ -167,4 +184,128 @@ body {
   font-size: 12px;
   /* Long email addresses would otherwise push the popup wider than 360px. */
   word-break: break-all;
+}
+
+/* Notes list */
+
+.panel--list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* .button sets `flex: 1` so that buttons sitting side by side share a row
+   evenly. Inside this column that would stretch "New note" to fill the whole
+   popup, so it is turned off again here. */
+.panel--list > .button {
+  flex: 0 0 auto;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* A <ul> comes with bullets and a big left indent by default. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each card is a real <button>, so it can be reached by Tab, activated with
+   Enter or Space, and announced as a button — all of which a clickable <div>
+   would have to reimplement badly. These rules undo the button look. */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background-color: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.note:hover {
+  border-color: var(--ink);
+}
+
+.note:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.note__title {
+  font-weight: 600;
+}
+
+/* One line only. The three properties have to appear together: ellipsis needs
+   something to clip, and nowrap is what stops the text wrapping instead. */
+.note__preview {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Editor */
+
+.panel--editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* The textarea does its own scrolling, so the panel around it should not. */
+  overflow: hidden;
+}
+
+.editor__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.editor__body {
+  /* Take all the height the title and footer are not using. */
+  flex: 1;
+  min-height: 120px;
+  /* The drag handle would let you pull the textarea past the edge of a popup
+     that cannot grow with it. */
+  resize: none;
+  line-height: 1.5;
+}
+
+/* Delete confirmation */
+
+.confirm {
+  padding: 12px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.confirm__text {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.button--danger {
+  color: var(--danger);
+}
+
+.button--danger-filled {
+  border-color: var(--danger);
+  background-color: var(--danger);
+  color: #fff;
+}
+
+.button--danger-filled:hover:not(:disabled) {
+  background-color: #6d1628;
+}
+
+.footer__status {
+  color: var(--muted);
+  font-size: 12px;
 }

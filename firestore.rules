@@ -1,0 +1,30 @@
+// The actual security for Keeper. Not the API key, not anything in the popup —
+// this file. Everything in the extension runs on someone else's computer, so a
+// determined person can call Firestore with whatever arguments they like. These
+// rules run on Google's servers, where nobody can edit them.
+//
+// Deploy after any change:
+//   firebase deploy --only firestore:rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Notes live at users/{uid}/notes/{noteId}, so the owner's ID is part of
+    // the path itself. That is why this rule is one line: there is no query you
+    // can write that reaches another person's notes without putting their uid
+    // in the path, and the check below refuses that.
+    //
+    // request.auth is null for anyone who is not signed in, and request.auth.uid
+    // comes from the ID token Firebase verifies on its side — it cannot be
+    // faked by the client.
+    match /users/{userId}/notes/{noteId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+
+    // Anything not matched above is denied. Firestore rules do not cascade:
+    // a path with no matching allow is refused, which is the behaviour we want.
+  }
+}

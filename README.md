@@ -3,8 +3,9 @@
 A Chrome extension that gives you a private place to jot notes from anywhere in
 the browser. See [docs/PLAN.md](docs/PLAN.md) for the full plan.
 
-**Status:** Phase 0 complete — the project builds and loads. There is no sign-in
-and no note-taking yet; those are Phases 1 and 2.
+**Status:** Phase 2 complete — you can create an account, sign in, write notes,
+and they are still there when you come back. Phase 3 is the polish: debounced
+drafts, search, timestamps.
 
 ## Getting set up
 
@@ -15,6 +16,24 @@ files that Linux then cannot delete.
 ```bash
 npm install
 ```
+
+## Firestore security rules (one time)
+
+`firestore.rules` is what actually stops one person reading another person's
+notes. It is not enough to have it in the repo — it only does anything once it
+is running on Google's servers:
+
+```bash
+npm install -g firebase-tools   # if you do not have it
+firebase login
+firebase deploy --only firestore:rules
+```
+
+Do this before signing in for the first time. Until the rules are deployed,
+saving a note fails with "Keeper is not allowed to open those notes" — Firestore
+denies everything by default, which is the right way round for it to fail.
+
+Re-run the deploy any time you edit `firestore.rules`.
 
 ## The dev loop
 
@@ -54,6 +73,7 @@ chrome-extension/
   dist/          build output - load THIS in Chrome; not committed
 store-assets/    promo image for the Chrome Web Store listing, not shipped
 public/          Firebase Hosting site (the privacy policy page, Phase 4)
+firestore.rules  who is allowed to read and write which notes
 ```
 
 Watch out for the two different `public/` folders: `chrome-extension/public/` is
