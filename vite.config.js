@@ -16,6 +16,13 @@ export default defineConfig({
   // they must ship at exact paths that Chrome looks for.
   publicDir: fromHere('./chrome-extension/public'),
 
+  // Where to look for .env files. This defaults to `root`, which above is
+  // chrome-extension/src -- so without this line Vite would quietly look for
+  // .env inside the source folder, find nothing, and build a bundle with an
+  // undefined Firebase config. Point it at the repo root, where .env actually
+  // lives, next to .env.example.
+  envDir: fromHere('.'),
+
   // Emit relative asset URLs ("./assets/popup.js"). The default is absolute
   // ("/assets/popup.js"), which is a rooted path that means something different
   // once the page is served from a chrome-extension:// origin.
