@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <style>
+      body {
+        background-image: url('https://img.freepik.com/free-vector/continuous-line-heart-shape-border-with-realistic-paper-heart_333792-28.jpg');
+      }
+    </style>
+    <h3>Welcome to Keeper!</h3>
+     <link href="/static/styles.css" rel="stylesheet">
+</head>
+
+<form action="/login" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password">
+        </div>
+        <button class="btn btn-primary" type="submit">Log In</button>
+        <div class="nav-item"><a class="nav-link" href="/forgot">Forgot Password</a>
+        </div>
+    </form>
+
+</html>
