@@ -124,7 +124,7 @@ Firebase auth flows that *don't* work are `signInWithPopup` and
 real browser popup window and a real web origin. Working around that means an
 offscreen document or `chrome.identity`. Email and password sidesteps all of it.
 
-Google sign-in is a reasonable Phase 5 addition once the core works.
+Google sign-in is a reasonable later addition once the core works.
 
 ### 3.4 Staying signed in is free
 
@@ -270,16 +270,6 @@ Sign out and back in — still there. Two accounts can't see each other's notes.
   for when the popup is too cramped
 - Ctrl/Cmd+S to save now
 
-### Phase 4 — Ship it
-
-- Write a privacy policy page into `public/index.html`. The Chrome Web Store
-  requires one for any extension handling user content, and the Firebase Hosting
-  setup plus the GitHub Actions workflows already in this repo deploy that folder
-  on merge. That's what they were for.
-- Store listing: description, screenshots, the promo image already in `icons/`
-- One-time $5 Chrome Web Store developer registration
-- Restrict the API key in the Google Cloud console; consider enabling App Check
-
 ---
 
 ## 6. Traps worth knowing about in advance
@@ -312,7 +302,7 @@ reach for this if you actually see the symptom.
 
 ## 7. Deliberately not in v1
 
-Google sign-in · password reset (add early in Phase 5, it's about ten lines) ·
+Google sign-in · password reset (add later, it's about ten lines) ·
 rich text or Markdown · tags and folders · right-click "save selection to Keeper"
 · sharing notes · offline editing · Firefox and Safari builds
 
