@@ -1,0 +1,719 @@
+<title>Building Keeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:      #F6F6FB;
+    --surface:     #FFFFFF;
+    --surface-alt: #EFEFF7;
+    --ink:         #1A1B2C;
+    --ink-soft:    #585A74;
+    --ink-faint:   #8A8CA4;
+    --accent:      #3A3D9E;
+    --accent-soft: #E6E7F6;
+    --caution:     #8A5A00;
+    --caution-bg:  #F8F0DF;
+    --rule:        #E2E2EE;
+    --rule-strong: #C9C9DC;
+
+    --f-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+    --f-body:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --f-mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+    --measure: 43rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #101120;
+      --surface:     #191B2A;
+      --surface-alt: #212335;
+      --ink:         #E9E9F4;
+      --ink-soft:    #A0A2BB;
+      --ink-faint:   #767992;
+      --accent:      #A3A8FF;
+      --accent-soft: #232746;
+      --caution:     #E2AC53;
+      --caution-bg:  #2C2413;
+      --rule:        #2B2D40;
+      --rule-strong: #3D4058;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #101120;
+    --surface:     #191B2A;
+    --surface-alt: #212335;
+    --ink:         #E9E9F4;
+    --ink-soft:    #A0A2BB;
+    --ink-faint:   #767992;
+    --accent:      #A3A8FF;
+    --accent-soft: #232746;
+    --caution:     #E2AC53;
+    --caution-bg:  #2C2413;
+    --rule:        #2B2D40;
+    --rule-strong: #3D4058;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16.5px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 1.5rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding: 4.5rem 0 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.1rem;
+  }
+
+  .masthead h1 {
+    font-family: var(--f-display);
+    font-optical-sizing: auto;
+    font-variation-settings: "wdth" 92;
+    font-size: clamp(2.9rem, 9vw, 4.4rem);
+    font-weight: 700;
+    line-height: 0.94;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+
+  .standfirst {
+    font-size: 1.14rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0 0 2rem;
+    max-width: 34rem;
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2.5rem;
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    line-height: 2.1;
+    color: var(--ink-faint);
+  }
+  .facts b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* ---------- sections ---------- */
+
+  section {
+    padding-top: 3.6rem;
+  }
+
+  .sec-label {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 0.5rem;
+  }
+
+  h2 {
+    font-family: var(--f-display);
+    font-variation-settings: "wdth" 95;
+    font-size: 1.85rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1.5rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  h3 {
+    font-family: var(--f-display);
+    font-variation-settings: "wdth" 96;
+    font-size: 1.16rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+    margin: 2.4rem 0 0.75rem;
+  }
+
+  p { margin: 0 0 1.05rem; }
+  p:last-child { margin-bottom: 0; }
+
+  a {
+    color: var(--accent);
+    text-underline-offset: 0.18em;
+  }
+
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.855em;
+    background: var(--surface-alt);
+    border-radius: 3px;
+    padding: 0.12em 0.36em;
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--f-mono);
+    font-size: 0.79rem;
+    line-height: 1.62;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.3rem 0;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+    word-break: normal;
+  }
+
+  ul, ol {
+    margin: 0 0 1.05rem;
+    padding-left: 1.35rem;
+  }
+  li { margin-bottom: 0.42rem; }
+  li:last-child { margin-bottom: 0; }
+  li::marker { color: var(--ink-faint); }
+
+  /* ---------- journey ---------- */
+
+  .journey {
+    list-style: none;
+    padding: 0;
+    margin: 1.4rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    counter-reset: step;
+  }
+  .journey li {
+    counter-increment: step;
+    position: relative;
+    padding: 0.72rem 0 0.72rem 2.9rem;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .journey li:last-child { border-bottom: 1px solid var(--rule); }
+  .journey li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.78rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--accent);
+    width: 1.7rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- table ---------- */
+
+  .table-scroll {
+    overflow-x: auto;
+    margin: 1.3rem 0;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--surface);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 30rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.72rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  th {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--surface-alt);
+    white-space: nowrap;
+  }
+  td:first-child { color: var(--ink); }
+  td code { background: var(--surface-alt); }
+
+  /* ---------- why-block ---------- */
+
+  .why {
+    border-left: 2px solid var(--rule-strong);
+    padding: 0.15rem 0 0.15rem 1.1rem;
+    margin: 1.2rem 0;
+    color: var(--ink-soft);
+    font-size: 0.955rem;
+  }
+  .why b {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ---------- phases ---------- */
+
+  .phase {
+    display: grid;
+    grid-template-columns: 3.1rem 1fr;
+    gap: 0 0.9rem;
+    padding: 1.9rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .phase:last-of-type { border-bottom: 1px solid var(--rule); }
+
+  .phase-num {
+    font-family: var(--f-mono);
+    font-size: 1.55rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--rule-strong);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.06rem;
+  }
+
+  .phase h3 {
+    margin: 0 0 0.7rem;
+    font-size: 1.1rem;
+  }
+
+  .phase ul { margin-bottom: 0.95rem; font-size: 0.955rem; }
+
+  .doneline {
+    font-size: 0.9rem;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 0.7rem 0.9rem;
+    border-radius: 2px;
+    margin: 0;
+  }
+  .doneline b {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+
+  /* ---------- traps ---------- */
+
+  .trap {
+    border-left: 3px solid var(--caution);
+    background: var(--caution-bg);
+    padding: 0.95rem 1.1rem;
+    margin: 0;
+    border-radius: 0 2px 2px 0;
+    font-size: 0.955rem;
+  }
+  .trap h4 {
+    font-family: var(--f-body);
+    font-size: 0.955rem;
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+    color: var(--caution);
+    line-height: 1.4;
+  }
+  .traps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-top: 1.4rem;
+  }
+
+  /* ---------- checklist ---------- */
+
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 1.4rem 0 0;
+    border-top: 1px solid var(--rule);
+  }
+  .checklist li {
+    position: relative;
+    padding: 0.68rem 0 0.68rem 2rem;
+    margin: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1.02rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 2px;
+  }
+
+  /* ---------- misc ---------- */
+
+  .laterlist {
+    font-size: 0.965rem;
+    color: var(--ink-soft);
+    margin-top: 1.2rem;
+  }
+
+  .colophon {
+    margin-top: 4rem;
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    line-height: 1.9;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 34rem) {
+    body { font-size: 16px; padding: 0 1.1rem 4rem; }
+    .masthead { padding-top: 3rem; }
+    .phase { grid-template-columns: 2.2rem 1fr; gap: 0 0.7rem; }
+    .phase-num { font-size: 1.2rem; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Implementation plan · v1</p>
+    <h1>Building Keeper</h1>
+    <p class="standfirst">A Chrome extension that gives you a private place to jot notes from anywhere in the browser. Sign in, write, close the popup — come back tomorrow and it's all still there.</p>
+    <div class="facts">
+      <span><b>Repo</b> keeper-extension</span>
+      <span><b>Stack</b> Manifest V3 · Firebase Auth · Firestore · Vite</span>
+      <span><b>Status</b> planning</span>
+    </div>
+  </header>
+
+  <section>
+    <p class="sec-label">01 — Scope</p>
+    <h2>What we're building</h2>
+    <p>The whole product is one small popup panel hanging off the toolbar icon. The journey it has to support:</p>
+    <ol class="journey">
+      <li>Click the Keeper icon. If you've never signed in, you get a sign-in / create-account panel.</li>
+      <li>Create an account with an email and password, or sign in to an existing one.</li>
+      <li>You land on your list of notes. Empty at first.</li>
+      <li>Write a note. It saves on its own — no "did that save?" anxiety.</li>
+      <li>Close the popup, close the browser, come back tomorrow. Still signed in, notes still there.</li>
+      <li>Sign out. The panel returns to the sign-in screen and shows nothing.</li>
+      <li>Sign back in. Everything's there again.</li>
+    </ol>
+    <p style="margin-top:1.4rem">That's the entire v1. Everything else is later.</p>
+  </section>
+
+  <section>
+    <p class="sec-label">02 — Starting point</p>
+    <h2>Where the project stands today</h2>
+
+    <p>There's already a scaffold in the repo, and a fair bit of it is worth keeping.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Already in place</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>manifest.json</code></td><td>Manifest V3, name, description, all four icon sizes. Solid base.</td></tr>
+          <tr><td>Firebase project <code>keeperext</code></td><td>Created, and the config is already committed.</td></tr>
+          <tr><td><code>firebase.json</code> · <code>.firebaserc</code></td><td>Hosting configured against <code>public/</code>.</td></tr>
+          <tr><td><code>.github/workflows/</code></td><td>Deploys hosting on merge and on PRs. We'll reuse this for the privacy policy page.</td></tr>
+          <tr><td><code>icons/heart16…128.png</code></td><td>Full icon set plus a promo image. The store listing needs exactly these.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>What has to be replaced</h3>
+    <ul>
+      <li><code>background.js</code> does not run at all. It declares <code>const db</code> twice — a hard syntax error, so JavaScript won't even parse the file — mixes Realtime Database with Firestore, and has literal <code>&lt;script&gt;</code> tags sitting inside a <code>.js</code> file.</li>
+      <li>The manifest's <code>content_security_policy</code> points <code>script-src</code> at <code>gstatic.com</code>. Manifest V3 does not allow loading scripts from other servers, and the Chrome Web Store rejects extensions that try. The Firebase SDK has to ship <em>inside</em> the extension.</li>
+      <li><code>popup.js</code> calls <code>signInWithEmailAndPassword(email, password)</code> where <code>email</code> and <code>password</code> were never defined, and calls <code>firebase.auth()</code> in a file where Firebase was never initialized.</li>
+      <li><code>keeper.html</code> and <code>login.html</code> both use <code>&lt;form action="/login" method="post"&gt;</code>. On a normal website the browser posts that to a server. There is no server here — the form just navigates the popup to a dead URL. Every form needs a JavaScript handler calling <code>event.preventDefault()</code> instead.</li>
+      <li>Both HTML files put <code>&lt;h3&gt;</code> and <code>&lt;link&gt;</code> inside <code>&lt;head&gt;</code>. Browsers quietly patch this up, but it'll bite once the layout gets more complex.</li>
+      <li><code>permissions: ["activeTab"]</code> isn't used by anything. Extra permissions scare users at install time and slow down store review — drop it until something needs it.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="sec-label">03 — Architecture</p>
+    <h2>The shape of it</h2>
+    <p>Six decisions worth making explicitly, before any code gets written.</p>
+
+    <h3>No background service worker in v1</h3>
+    <p>Everything happens while the popup is open, so there's nothing for a background worker to do. Delete <code>background.js</code> and the <code>background</code> key in the manifest. Add it back later if we want right-click "save selection to Keeper" or a reminder alarm — those genuinely need it.</p>
+    <div class="why"><b>Why</b> The MV3 service worker has its own lifecycle rules — Chrome shuts it down after roughly 30 seconds idle — and it's the single most confusing part of extension development. Don't take on that complexity for zero benefit.</div>
+
+    <h3>Bundle the Firebase SDK with Vite</h3>
+    <p>Add a build step. <code>npm run build</code> produces a <code>dist/</code> folder, and <code>dist/</code> is what you load into Chrome.</p>
+<pre><code>chrome-extension/
+  public/                 # copied to dist/ untouched
+    manifest.json
+    icons/
+  src/
+    popup.html            # the one and only page
+    popup.js              # view switching, wiring
+    lib/
+      firebase.js         # initializes the app, exports auth + db
+      auth.js             # signUp / signIn / signOut / onAuthChange
+      notes.js            # watchNotes / createNote / updateNote / deleteNote
+    views/
+      auth-view.js
+      list-view.js
+      editor-view.js
+    styles.css
+  dist/                   # build output — load THIS folder in Chrome</code></pre>
+    <div class="why"><b>Why</b> MV3 bans remote scripts, so the SDK has to be a local file either way. You could hand-download Firebase's compat files and skip the build step entirely, but that's the deprecated v8 API and it ships around 500KB. Vite tree-shakes the modern v10+ modular SDK down to roughly a fifth of that, and gives you a real import system.</div>
+    <p>The dev loop is <code>npm run build</code>, then hit the reload arrow on the extension card at <code>chrome://extensions</code>. If that gets tedious, <code>@crxjs/vite-plugin</code> adds hot reload — but start without it. Fewer moving parts to debug.</p>
+
+    <h3>Email + password, using the Firebase Auth SDK directly</h3>
+    <p>Enable the Email/Password provider in the Firebase console, then use <code>createUserWithEmailAndPassword</code> and <code>signInWithEmailAndPassword</code> straight from the popup page.</p>
+    <div class="why"><b>Why</b> These are plain HTTPS calls and they work fine in an extension. The Firebase flows that <em>don't</em> work are <code>signInWithPopup</code> and <code>signInWithRedirect</code> — the "Sign in with Google" button — because those need a real browser popup window and a real web origin. Working around that means an offscreen document or <code>chrome.identity</code>. Email and password sidesteps all of it.</div>
+    <p>Google sign-in becomes a reasonable addition once the core works.</p>
+
+    <h3>Staying signed in is free</h3>
+    <p>The Firebase Auth SDK stores the session in IndexedDB by default, scoped to the extension's own origin. It survives the popup closing and the browser restarting, and it refreshes the token in the background on its own. So the "log out and log back in" requirement needs no token code from us:</p>
+    <ul>
+      <li><code>onAuthStateChanged(auth, user =&gt; …)</code> fires on every popup open with either a user or <code>null</code>. That single callback decides which view you see.</li>
+      <li><code>signOut(auth)</code> clears it. On the next popup open, <code>user</code> is <code>null</code>.</li>
+    </ul>
+    <div class="why"><b>Don't</b> Hand-roll token storage in <code>chrome.storage</code>. It's the obvious-looking move and it's a trap — Firebase ID tokens expire after an hour, and you'd be reimplementing refresh logic the SDK already does correctly.</div>
+
+    <h3>Firestore, one note per document, nested under the user</h3>
+<pre><code>users/{uid}/notes/{noteId}
+    title      string
+    body       string
+    createdAt  timestamp
+    updatedAt  timestamp</code></pre>
+    <div class="why"><b>Why nested</b> Rather than a flat <code>notes</code> collection with an <code>ownerUid</code> field: the security rule becomes a single line you can actually reason about, and every query is naturally scoped to one person. There's no way to accidentally write a query that leaks someone else's notes, because the path itself contains the user ID.</div>
+    <p>Read the list with <code>onSnapshot</code>. It pushes changes live instead of you re-fetching, so a note written on your laptop appears on your desktop without a refresh button.</p>
+
+    <h3>Security rules are the actual security</h3>
+<pre><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/notes/{noteId} {
+      allow read, write: if request.auth != null
+                         &amp;&amp; request.auth.uid == userId;
+    }
+  }
+}</code></pre>
+    <p>Deploy with <code>firebase deploy --only firestore:rules</code>.</p>
+    <div class="why"><b>About the API key in the repo</b> That's fine, and it's supposed to be. A Firebase web API key is an identifier, not a password — it tells Google which project you're talking to, and it sits in the page source of every Firebase web app. What actually protects the data is the rules above plus Auth. Later: restrict the key to your extension in the Google Cloud console, and turn on App Check.</div>
+  </section>
+
+  <section>
+    <p class="sec-label">04 — Interface</p>
+    <h2>What the popup looks like</h2>
+    <p>One HTML page, four views, swapped by JavaScript. Popups are roughly 360×500 pixels — design for that, not for a desktop window.</p>
+<pre><code>              onAuthStateChanged fires
+                       |
+          +------------+------------+
+          |                         |
+     user is null              user exists
+          |                         |
+    [ Auth view ]             [ List view ]
+ sign in / create acct       notes, newest first
+                              + "New note"
+                              + sign out
+                                    |
+                              tap a note
+                                    |
+                             [ Editor view ]
+                             title + body,
+                             autosaves, back, delete</code></pre>
+    <p>There's a fourth: a <strong>loading view</strong>, shown for the split second before <code>onAuthStateChanged</code> first fires. Without it the popup flashes the sign-in screen at an already-signed-in user every single time. Small detail, very visible.</p>
+  </section>
+
+  <section>
+    <p class="sec-label">05 — Sequence</p>
+    <h2>Build phases</h2>
+    <p>Each phase ends somewhere you can actually click. Don't start the next one until the previous one is true.</p>
+
+    <div class="phase">
+      <div class="phase-num">0</div>
+      <div>
+        <h3>Make it build and load</h3>
+        <ul>
+          <li><code>npm init</code>, install <code>firebase</code> and <code>vite</code></li>
+          <li>Restructure into the folder layout above</li>
+          <li>Rewrite <code>manifest.json</code>: drop <code>content_security_policy</code>, drop <code>background</code>, drop <code>activeTab</code>, keep <code>storage</code>, point <code>default_popup</code> at the built <code>popup.html</code></li>
+          <li>Add <code>host_permissions</code> for <code>https://*.googleapis.com/</code> and <code>https://*.firebaseio.com/</code> — avoids cross-origin surprises</li>
+          <li>Delete <code>background.js</code>, <code>popup.js</code>, <code>login.html</code>, <code>keeper.html</code></li>
+          <li>Add <code>dist/</code> and <code>node_modules/</code> to <code>.gitignore</code></li>
+        </ul>
+        <p class="doneline"><b>Done when</b><code>npm run build</code> succeeds, you load <code>dist/</code> via "Load unpacked" at <code>chrome://extensions</code>, and clicking the icon opens a popup that says anything at all.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">1</div>
+      <div>
+        <h3>Accounts</h3>
+        <ul>
+          <li>Enable Email/Password in Firebase console → Authentication → Sign-in method</li>
+          <li><code>lib/firebase.js</code>: <code>initializeApp</code> + <code>getAuth</code> + <code>getFirestore</code></li>
+          <li><code>lib/auth.js</code>: thin wrappers over the four SDK calls</li>
+          <li><code>views/auth-view.js</code>: email field, password field, "Sign in" and "Create account", one place to show errors</li>
+          <li><code>popup.js</code>: <code>onAuthStateChanged</code> chooses loading / auth / list</li>
+        </ul>
+        <p class="doneline"><b>Done when</b>You can create an account, close the popup, reopen it, and land straight on the empty list. Signing out returns you to the sign-in panel.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">2</div>
+      <div>
+        <h3>Notes</h3>
+        <ul>
+          <li>Write and deploy the security rules</li>
+          <li><code>lib/notes.js</code>: <code>watchNotes(uid, cb)</code> via <code>onSnapshot</code>, plus <code>createNote</code>, <code>updateNote</code>, <code>deleteNote</code></li>
+          <li><code>views/list-view.js</code>: note cards showing title and first line, newest first</li>
+          <li><code>views/editor-view.js</code>: title input, body textarea, back, delete</li>
+        </ul>
+        <p class="doneline"><b>Done when</b>You write a note, close the popup, reopen — it's there. Sign out and back in — still there. Two different accounts can't see each other's notes.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">3</div>
+      <div>
+        <h3>Make it pleasant</h3>
+        <ul>
+          <li>Debounce saves to roughly 800ms after you stop typing — saving on every keystroke means a billable Firestore write and a network round trip per character</li>
+          <li>Draft rescue: mirror in-progress text into <code>chrome.storage.local</code> on every change, restore on open, clear once the save lands</li>
+          <li>A search box that filters the list</li>
+          <li>Relative timestamps ("2 hours ago")</li>
+          <li>A real empty state, and real error messages</li>
+          <li>"Open in tab" via <code>chrome.tabs.create({ url: chrome.runtime.getURL('popup.html') })</code>, for when the popup feels too cramped</li>
+          <li>Ctrl/Cmd+S to save now</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">4</div>
+      <div>
+        <h3>Ship it</h3>
+        <ul>
+          <li>Write a privacy policy into <code>public/index.html</code>. The Chrome Web Store requires one for any extension handling user content — and the Firebase Hosting setup plus the GitHub Actions workflows already in this repo deploy that folder on merge. That's what they were for.</li>
+          <li>Store listing: description, screenshots, the promo image already sitting in <code>icons/</code></li>
+          <li>One-time $5 Chrome Web Store developer registration</li>
+          <li>Restrict the API key in the Google Cloud console; consider enabling App Check</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="sec-label">06 — Forewarned</p>
+    <h2>Traps worth knowing about in advance</h2>
+    <div class="traps">
+      <div class="trap">
+        <h4>The popup is destroyed when it closes</h4>
+        <p>Click outside it, switch tabs, press Escape — the page is gone and every variable with it. Nothing survives that isn't in Firestore or <code>chrome.storage</code>. That's why Phase 3's draft rescue exists.</p>
+      </div>
+      <div class="trap">
+        <h4>Auth errors are deliberately vague now</h4>
+        <p>Firebase turned on email-enumeration protection by default, so a wrong password and a nonexistent account both come back as <code>auth/invalid-credential</code>. Don't try to write "no account with that email" — you can't tell, and that's the point; it stops people probing for which emails are registered. Show one message: "Email or password is incorrect."</p>
+      </div>
+      <div class="trap">
+        <h4><code>chrome.storage.local</code> is not a database</h4>
+        <p>It's per-browser and per-profile. Right place for a scratch draft; wrong place for the notes themselves, because it doesn't sync and doesn't survive a reinstall.</p>
+      </div>
+      <div class="trap">
+        <h4>Errors inside the popup are easy to miss</h4>
+        <p>Right-click the popup → Inspect opens its own DevTools window. The regular page console shows you nothing at all.</p>
+      </div>
+      <div class="trap">
+        <h4>If Firestore requests hang and never resolve</h4>
+        <p>Try <code>initializeFirestore(app, { experimentalForceLongPolling: true })</code>. Firestore's default streaming transport occasionally misbehaves in extension contexts. Only reach for this if you actually see the symptom.</p>
+      </div>
+      <div class="trap">
+        <h4>Reloading the extension does not reload an open popup</h4>
+        <p>Close it and open it again, or you'll spend twenty minutes debugging code that isn't running.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="sec-label">07 — Boundaries</p>
+    <h2>Deliberately not in v1</h2>
+    <p class="laterlist">Google sign-in · password reset (worth adding early — it's about ten lines) · rich text or Markdown · tags and folders · right-click "save selection to Keeper" · sharing notes · offline editing · Firefox and Safari builds</p>
+  </section>
+
+  <section>
+    <p class="sec-label">08 — Acceptance</p>
+    <h2>Definition of done</h2>
+    <p>Mapped straight back to the original ask.</p>
+    <ul class="checklist">
+      <li>A user can create an account and log in</li>
+      <li>A logged-in user has a space to write notes about anything</li>
+      <li>Notes are saved for later</li>
+      <li>The user can log out</li>
+      <li>Logging back in shows their notes again, and they can add more</li>
+      <li>One user cannot read another user's notes — verified with two accounts</li>
+    </ul>
+  </section>
+
+  <p class="colophon">
+    keeper-extension · docs/PLAN.md is the canonical copy in the repo<br>
+    Chrome Manifest V3 · Firebase Auth · Cloud Firestore · Vite
+  </p>
+
+</div>
