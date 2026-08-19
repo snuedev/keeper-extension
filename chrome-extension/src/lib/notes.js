@@ -48,6 +48,14 @@ function timeOf(timestamp) {
   return timestamp?.toMillis?.() ?? Number.POSITIVE_INFINITY;
 }
 
+// When a note was last written, in plain milliseconds, or null if the server
+// has not stamped it yet. This exists so the list view can show "2 hours ago"
+// without importing Firestore's Timestamp class or knowing that .toMillis()
+// is a thing — same reason no view imports from 'firebase/firestore'.
+export function updatedMillis(note) {
+  return note.updatedAt?.toMillis?.() ?? null;
+}
+
 function newestFirst(a, b) {
   const left = timeOf(a.updatedAt);
   const right = timeOf(b.updatedAt);

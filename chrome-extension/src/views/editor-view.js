@@ -4,12 +4,20 @@
 // loses focus — click the page behind it and this whole file's variables are
 // gone — so a button you have to remember to press is a button you will
 // sometimes forget, and the note goes with it. Instead the note saves itself
-// shortly after you stop typing.
+// shortly after you stop typing. Ctrl+S still works, because hands do that
+// anyway — it just makes the save happen now instead of in a moment.
+//
+// Between a keystroke and the save landing there is a short window where the
+// text exists only on this screen. lib/drafts.js covers that window by keeping
+// a copy in chrome.storage.local, which this file writes as you type and puts
+// back the next time you open the same note.
 
+import { clearDraft, readDraft, saveDraft } from '../lib/drafts.js';
 import {
   deleteNote,
   describeNotesError,
   updateNote,
+  updatedMillis,
 } from '../lib/notes.js';
 
 // How long to wait after the last keystroke before writing to Firestore.
@@ -20,6 +28,16 @@ import {
 // pause between words, short enough that you would have to be trying to close
 // the popup inside the window.
 const SAVE_DELAY_MS = 800;
+
+// A draft left over from a previous visit is text that never reached Firestore.
+// It normally wins — that is the whole point of keeping it. The exception is a
+// note that was edited somewhere else in the meantime, where the newer text
+// should not be thrown away by a stale local copy.
+//
+// The two times being compared come from different clocks (the draft is stamped
+// by this machine, updatedAt by Firestore's servers), so "newer" is only
+// believed when it is newer by a clear margin.
+const STALE_SLACK_MS = 60 * 1000;
 
 export function renderEditorView(container, user, note, { onBack }) {
   container.innerHTML = `
@@ -101,6 +119,12 @@ export function renderEditorView(container, user, note, { onBack }) {
   // Set once the note is deleted, so a save that was already queued does not
   // quietly recreate it.
   let gone = false;
+  // Set once this view has been torn down. Reading the draft is asynchronous
+  // and the popup is quick to leave, so the answer can arrive after the editor
+  // is off screen — at which point putting text into these inputs would be
+  // writing to markup nobody can see. The draft stays where it is and gets
+  // offered again the next time the note is opened.
+  let left = false;
 
   function setStatus(message) {
     statusText.textContent = message;
@@ -144,8 +168,18 @@ export function renderEditorView(container, user, note, { onBack }) {
     try {
       await updateNote(user.uid, note.id, fields);
       clearError();
+
       // More may have been typed while that was in the air.
-      setStatus(Object.keys(unsaved).length > 0 ? 'Saving…' : 'Saved');
+      const stillTyping = Object.keys(unsaved).length > 0;
+
+      // The note is in Firestore now, so the rescue copy has done its job and
+      // can go. Not if more has been typed since, though — that newer text is
+      // once again the thing only this popup knows about.
+      if (!stillTyping) {
+        clearDraft(user.uid, note.id);
+      }
+
+      setStatus(stillTyping ? 'Saving…' : 'Saved');
       return true;
     } catch (error) {
       // Put the changes back so the next save picks them up again rather than
@@ -160,6 +194,18 @@ export function renderEditorView(container, user, note, { onBack }) {
   function scheduleSave(fields) {
     unsaved = { ...unsaved, ...fields };
     setStatus('Editing…');
+
+    // The local rescue copy is written on every keystroke, with no delay of its
+    // own. It has to be: the delay below is exactly the window in which the
+    // popup can be closed and the last few words lost, and writing to
+    // chrome.storage.local is a cheap local operation rather than a network
+    // request — there is nothing to save up for.
+    saveDraft(user.uid, note.id, {
+      title: titleInput.value,
+      body: bodyInput.value,
+    });
+
+
     // Restarting the timer on every keystroke is what makes this fire once
     // after you stop, rather than once every 800ms while you type.
     clearTimeout(saveTimer);
@@ -217,6 +263,9 @@ export function renderEditorView(container, user, note, { onBack }) {
       try {
         await deleteNote(user.uid, note.id);
         gone = true;
+        // Otherwise the rescue copy outlives the note, and opening a new note
+        // that happened to reuse the id would offer to restore a dead one.
+        clearDraft(user.uid, note.id);
         onBack();
       } catch (error) {
         showError(describeNotesError(error));
@@ -224,6 +273,69 @@ export function renderEditorView(container, user, note, { onBack }) {
         event.currentTarget.disabled = false;
       }
     });
+
+  // Ctrl+S (Cmd+S on a Mac) is what everyone's hands do when they want to be
+  // sure. It is not needed — the note saves itself — but a keystroke that does
+  // nothing feels broken, and the browser's own "save this page" dialog would
+  // steal focus and close the popup, taking the note with it. So: intercept it
+  // and do the reassuring thing.
+  //
+  // On document rather than on any one field, so it works wherever the cursor
+  // happens to be.
+  function handleShortcut(event) {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    // .key is the character produced, which is uppercase when Shift is down.
+    if (event.key.toLowerCase() !== 's') return;
+
+    event.preventDefault();
+    saveNow();
+  }
+
+  document.addEventListener('keydown', handleShortcut);
+
+  // Puts back text that never made it to Firestore last time — see lib/drafts.js.
+  //
+  // Reading storage is asynchronous, so by the time this resolves the person
+  // may already be typing. Every early return below is a case where what is on
+  // screen is more trustworthy than what came off the disk.
+  async function restoreDraft() {
+    const draft = await readDraft(user.uid, note.id);
+    if (!draft || gone || left) return;
+
+    const savedTitle = note.title ?? '';
+    const savedBody = note.body ?? '';
+
+    // Somebody started typing while the read was in flight. Their keystrokes
+    // are newer than anything stored, so leave them alone.
+    if (titleInput.value !== savedTitle || bodyInput.value !== savedBody) return;
+
+    const draftTitle = draft.title ?? '';
+    const draftBody = draft.body ?? '';
+
+    // The usual case: the save did land, and this is a leftover copy of text
+    // that already matches. Nothing to restore, and nothing to keep.
+    if (draftTitle === savedTitle && draftBody === savedBody) {
+      clearDraft(user.uid, note.id);
+      return;
+    }
+
+    // Edited elsewhere since this draft was written — see STALE_SLACK_MS.
+    const savedAt = updatedMillis(note);
+    if (savedAt != null && savedAt > (draft.at ?? 0) + STALE_SLACK_MS) {
+      clearDraft(user.uid, note.id);
+      return;
+    }
+
+    titleInput.value = draftTitle;
+    bodyInput.value = draftBody;
+
+    // Get it into Firestore this time, rather than leaving it sitting in local
+    // storage waiting to be rescued all over again.
+    scheduleSave({ title: draftTitle, body: draftBody });
+    // scheduleSave has just set this to "Editing…", which would be a lie about
+    // something the person did not do. Say what actually happened.
+    setStatus('Restored unsaved changes');
+  }
 
   // A brand new note opens with the cursor in the title; an existing one opens
   // in the body, which is where you are far more likely to be adding to it.
@@ -234,8 +346,14 @@ export function renderEditorView(container, user, note, { onBack }) {
   }
 
   setStatus('Saved');
+  restoreDraft();
 
   // Leaving the editor for any reason — including signing out — must not leave
-  // a timer running against markup that has been thrown away.
-  return () => clearTimeout(saveTimer);
+  // a timer or a key handler running against markup that has been thrown away.
+  // Anything typed and not yet written is not lost by this: it is in the draft.
+  return () => {
+    left = true;
+    clearTimeout(saveTimer);
+    document.removeEventListener('keydown', handleShortcut);
+  };
 }

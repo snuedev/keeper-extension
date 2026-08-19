@@ -29,6 +29,17 @@ body {
   line-height: 1.5;
 }
 
+/* "Open in tab" loads this same page as a real browser tab, where the popup's
+   fixed 360x500 box would be a small rectangle marooned in the corner of a
+   large window. The width is capped rather than left to fill the screen: text
+   in a line 1600px wide is genuinely hard to read, and margin: auto centres
+   what is left. */
+body.in-tab {
+  width: min(720px, 100%);
+  height: 100vh;
+  margin: 0 auto;
+}
+
 .header {
   padding: 16px;
   border-bottom: 1px solid var(--line);
@@ -179,6 +190,14 @@ body {
   border-top: 1px solid var(--line);
 }
 
+/* Account on the left, "Open in tab" on the right. */
+.footer--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .footer__account {
   color: var(--muted);
   font-size: 12px;
@@ -199,6 +218,19 @@ body {
    popup, so it is turned off again here. */
 .panel--list > .button {
   flex: 0 0 auto;
+}
+
+/* Flex items are allowed to shrink below their natural size by default. In
+   this column that means a long list of notes could squash the search box
+   flatter and flatter as it grows. This pins it to its own height. */
+.search {
+  flex: 0 0 auto;
+}
+
+/* Chrome draws its own clear "x" in a search field. It fits the field better
+   without the extra padding the browser assumes around it. */
+.search::-webkit-search-cancel-button {
+  cursor: pointer;
 }
 
 .notes {
@@ -250,6 +282,14 @@ body {
   font-size: 13px;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* "2 hours ago". Deliberately the quietest thing on the card: it is context,
+   not something you came here to read. */
+.note__time {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 /* Editor */

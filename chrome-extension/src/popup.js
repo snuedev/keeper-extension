@@ -8,11 +8,20 @@
 // exactly one place to look when the wrong thing is showing.
 
 import { onAuthChange } from './lib/auth.js';
+import { isTabView } from './lib/tab.js';
 import { renderAuthView } from './views/auth-view.js';
 import { renderEditorView } from './views/editor-view.js';
 import { renderListView } from './views/list-view.js';
 
 const app = document.querySelector('#app');
+
+// The same page serves both the toolbar popup and the full tab that "Open in
+// tab" creates. A popup has to state its own size or it collapses to fit its
+// contents; a tab has a whole window to fill. One class on <body> is the
+// difference — see the .in-tab rules in styles.css.
+if (isTabView()) {
+  document.body.classList.add('in-tab');
+}
 
 // Views may hand back a teardown function — the list view has a live Firestore
 // subscription, the editor has a save timer — and whatever the last view left
