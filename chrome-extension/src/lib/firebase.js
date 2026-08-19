@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { indexedDBLocalPersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // A Firebase web API key identifies the project rather than authenticating it,
@@ -15,5 +15,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Named rather than left to getAuth's own guess, because the service worker
+// and the popup only see the same session if they agree on where it is kept,
+// and a service worker has no localStorage for getAuth to fall back to.
+export const auth = initializeAuth(app, {
+  persistence: indexedDBLocalPersistence,
+});
 export const db = getFirestore(app);

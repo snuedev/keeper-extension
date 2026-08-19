@@ -1,6 +1,7 @@
 import { onAuthChange } from './lib/auth.js';
 import { clearDraftsFor } from './lib/drafts.js';
 import { isTabView } from './lib/tab.js';
+import { loadTheme } from './lib/theme.js';
 import { renderAuthView } from './views/auth-view.js';
 import { renderEditorView } from './views/editor-view.js';
 import { renderListView } from './views/list-view.js';
@@ -10,6 +11,11 @@ const app = document.querySelector('#app');
 if (isTabView()) {
   document.body.classList.add('in-tab');
 }
+
+// Extension pages cannot run inline scripts, so the stored choice can only be
+// applied once the bundle has loaded. Kicked off before anything else to keep
+// the window in which the system theme shows through as short as possible.
+loadTheme();
 
 let tearDownCurrentView = null;
 

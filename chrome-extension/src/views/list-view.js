@@ -6,6 +6,7 @@ import {
   watchNotes,
 } from '../lib/notes.js';
 import { isTabView, openInTab } from '../lib/tab.js';
+import { themeToggleMarkup, wireThemeToggle } from '../lib/theme.js';
 import { relativeTime } from '../lib/time.js';
 
 const CLOCK_TICK_MS = 60 * 1000;
@@ -14,9 +15,12 @@ export function renderListView(container, user, { onOpenNote }) {
   container.innerHTML = `
     <header class="header header--row">
       <h1 class="header__title">Keeper</h1>
-      <button class="button button--quiet" type="button" data-action="sign-out">
-        Sign out
-      </button>
+      <div class="header__actions">
+        ${themeToggleMarkup}
+        <button class="button button--quiet" type="button" data-action="sign-out">
+          Sign out
+        </button>
+      </div>
     </header>
     <main class="panel panel--list">
       <button class="button button--primary" type="button" data-action="new-note">
@@ -51,6 +55,8 @@ export function renderListView(container, user, { onOpenNote }) {
       </button>
     </footer>
   `;
+
+  wireThemeToggle(container);
 
   container.querySelector('.footer__account').textContent =
     user.email ?? 'Signed in';

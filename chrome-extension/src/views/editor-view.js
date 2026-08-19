@@ -1,5 +1,6 @@
 import { clearDraft, readDraft, saveDraft } from '../lib/drafts.js';
 import { deleteNote, describeNotesError, updateNote } from '../lib/notes.js';
+import { themeToggleMarkup, wireThemeToggle } from '../lib/theme.js';
 
 const SAVE_DELAY_MS = 800;
 
@@ -9,13 +10,16 @@ export function renderEditorView(container, user, note, { onBack }) {
       <button class="button button--quiet" type="button" data-action="back">
         ← All notes
       </button>
-      <button
-        class="button button--quiet button--danger"
-        type="button"
-        data-action="delete"
-      >
-        Delete
-      </button>
+      <div class="header__actions">
+        ${themeToggleMarkup}
+        <button
+          class="button button--quiet button--danger"
+          type="button"
+          data-action="delete"
+        >
+          Delete
+        </button>
+      </div>
     </header>
     <main class="panel panel--editor">
       <input
@@ -57,6 +61,8 @@ export function renderEditorView(container, user, note, { onBack }) {
       <span class="footer__status" role="status"></span>
     </footer>
   `;
+
+  wireThemeToggle(container);
 
   const titleInput = container.querySelector('.editor__title');
   const bodyInput = container.querySelector('.editor__body');

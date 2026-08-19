@@ -66,16 +66,24 @@ That's the entire v1. Anything else is later.
 
 Six decisions worth making explicitly up front.
 
-### 3.1 No background service worker in v1
+### 3.1 A background service worker, but only for Google sign-in
 
-Everything happens while the popup is open, so there's nothing for a background
-worker to do. Delete `background.js` and the `background` key in the manifest.
-Add it back in a later phase if we want right-click "save selection to Keeper"
-or a reminder alarm — those genuinely need it.
+Phases 0–3 shipped without one, and that was right: everything happened while
+the popup was open, so there was nothing for a worker to do.
 
-**Why:** the MV3 service worker has its own lifecycle rules (Chrome shuts it down
-after roughly 30 seconds idle) and it is the single most confusing part of
-extension development. Don't take on that complexity for zero benefit.
+Google sign-in changed that. The consent screen opens in its own window, and a
+Chrome popup is destroyed the instant it loses focus — the popup would be gone
+long before Google redirected back, taking the promise waiting on the result
+with it. So `background.js` exists now, and it does exactly one thing: it runs
+the sign-in flow described in §3.3 when the popup asks it to.
+
+Everything else stays in the popup. If we later want right-click "save selection
+to Keeper" or a reminder alarm, this is where those go too.
+
+**Why not more:** the MV3 service worker has its own lifecycle rules (Chrome
+shuts it down after roughly 30 seconds idle) and it is the single most confusing
+part of extension development. It earns its place here because the popup
+genuinely cannot do this job; it should not collect work it doesn't need.
 
 ### 3.2 Bundle the Firebase SDK with Vite
 
@@ -124,7 +132,36 @@ Firebase auth flows that *don't* work are `signInWithPopup` and
 real browser popup window and a real web origin. Working around that means an
 offscreen document or `chrome.identity`. Email and password sidesteps all of it.
 
-Google sign-in is a reasonable later addition once the core works.
+**Google sign-in, added after Phase 3.** The catch above is real:
+`signInWithPopup` and `signInWithRedirect` do not work here. The way around it
+is to run the OAuth handshake ourselves with `chrome.identity.launchWebAuthFlow`
+and hand the resulting token to Firebase:
+
+1. `chrome.identity.getRedirectURL()` gives us
+   `https://<extension-id>.chromiumapp.org/`. Nothing is ever fetched from that
+   address — Chrome watches for it and intercepts the redirect.
+2. Send the user to Google's authorize endpoint asking for `id_token token`,
+   with `scope=openid email profile` and a random `nonce` (Google requires one
+   for this response type).
+3. Google redirects back with the tokens in the URL *fragment*. Fragments are
+   never sent to a server, which is what makes this safe without a client secret.
+4. `GoogleAuthProvider.credential(idToken, accessToken)` wraps them, and
+   `signInWithCredential(auth, credential)` turns them into a Firebase session.
+
+From there it is an ordinary Firebase session — `onAuthStateChanged`, the same
+notes, the same rules. Nothing downstream knows or cares which button was used.
+
+Two things this depends on:
+
+- The **OAuth Web client ID** lives in `lib/google.js`. It's the one Firebase
+  auto-creates when you enable the Google provider (Firebase console →
+  Authentication → Sign-in method → Google → Web SDK configuration). Client IDs
+  are not secrets; they ship in the source of every web app.
+- That client needs `https://<extension-id>.chromiumapp.org/` on its **authorized
+  redirect URI** list, set in the Google Cloud console. An unpacked extension's
+  ID is derived from its folder path, so it changes if the folder moves and the
+  redirect silently stops matching. Pin it with a `key` field in the manifest
+  before this gets annoying.
 
 ### 3.4 Staying signed in is free
 
@@ -270,6 +307,33 @@ Sign out and back in — still there. Two accounts can't see each other's notes.
   for when the popup is too cramped
 - Ctrl/Cmd+S to save now
 
+### Phase 4 — Look and sign-in
+
+- **Times New Roman throughout.** One `font-family` on `body`; everything else
+  already inherits it. `"Liberation Serif"` sits in the stack behind it for
+  Linux, which ships no Times New Roman but does ship a clone with identical
+  letter widths. Base size goes 14px → 15px: Times has a smaller x-height than
+  the system sans it replaced, so the same number reads noticeably smaller.
+- **A light / dark toggle**, cycling system → light → dark and back, stored in
+  `chrome.storage.local`. The palette moves to CSS's `light-dark()` so each
+  colour is written once instead of twice, and `data-theme` on `<html>` only has
+  to flip `color-scheme` to swap the whole set. `light-dark()` takes colours
+  only, so the one box-shadow token is assembled from two colour tokens.
+- **Google sign-in** per §3.3, run from the service worker in §3.1.
+
+**Done when:** the toggle survives closing the popup, an account made with
+Google lands on the same list as one made with a password, and both see only
+their own notes.
+
+Two rough edges worth knowing, neither worth fixing yet:
+
+- Extension pages can't run inline scripts, so the stored theme is only applied
+  once the bundle parses. If your choice differs from your system setting,
+  there's a brief flash of the system one.
+- Clicking "Continue with Google" closes the popup, because the consent window
+  takes focus. Sign-in still completes in the worker — reopen Keeper and you're
+  in. Use "Open in tab" if you'd rather watch it happen.
+
 ---
 
 ## 6. Traps worth knowing about in advance
@@ -302,9 +366,11 @@ reach for this if you actually see the symptom.
 
 ## 7. Deliberately not in v1
 
-Google sign-in · password reset (add later, it's about ten lines) ·
+Password reset (add later, it's about ten lines) ·
 rich text or Markdown · tags and folders · right-click "save selection to Keeper"
 · sharing notes · offline editing · Firefox and Safari builds
+
+(Google sign-in was on this list and got built anyway — see §3.3 and Phase 4.)
 
 ---
 

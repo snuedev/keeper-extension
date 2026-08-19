@@ -1,9 +1,36 @@
+/* light-dark() picks its first colour under a light color-scheme and its second
+   under a dark one, so the two palettes stay on one line each and the theme
+   attribute below only has to switch color-scheme. */
 :root {
-  --pink: #ffc5d3;
-  --ink: #1a1a1a;
-  --muted: #6b6b6b;
-  --line: rgba(0, 0, 0, 0.1);
-  --danger: #8c1c34;
+  color-scheme: light dark;
+
+  --ground: light-dark(#fff5f7, #141013);
+  --chrome: light-dark(#ffc5d3, #241b1f);
+  --surface: light-dark(#ffffff, #1f181b);
+  --ink: light-dark(#241c1f, #f4eaed);
+  --muted: light-dark(#6b5c60, #ae9ba2);
+  --line: light-dark(rgba(36, 28, 31, 0.12), rgba(255, 255, 255, 0.12));
+  --line-strong: light-dark(rgba(36, 28, 31, 0.3), rgba(255, 255, 255, 0.3));
+  --accent: light-dark(#b12a4b, #ff9cb5);
+  --accent-ink: light-dark(#ffffff, #2a1018);
+  --accent-soft: light-dark(#ffe3ea, #3a2029);
+  --danger: light-dark(#8c1c34, #ff9e9e);
+  --danger-ink: light-dark(#ffffff, #2a1018);
+  --ring: light-dark(rgba(177, 42, 75, 0.35), rgba(255, 156, 181, 0.4));
+
+  /* light-dark() only accepts colours, so the shadow is assembled from two of
+     them rather than swapped whole. */
+  --shadow-near: light-dark(rgba(36, 28, 31, 0.05), rgba(0, 0, 0, 0.4));
+  --shadow-far: light-dark(rgba(36, 28, 31, 0.06), rgba(0, 0, 0, 0.3));
+  --lift: 0 1px 2px var(--shadow-near), 0 2px 6px var(--shadow-far);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 * {
@@ -16,17 +43,21 @@ body {
   width: 360px;
   height: 500px;
   margin: 0;
-  background-color: var(--pink);
+  background-color: var(--ground);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 14px;
+  /* Liberation Serif is the metric-compatible stand-in shipped by Linux
+     distributions, which have no Times New Roman of their own. */
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-size: 15px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 body.in-tab {
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   height: 100vh;
   margin: 0 auto;
+  border-inline: 1px solid var(--line);
 }
 
 #app {
@@ -36,8 +67,10 @@ body.in-tab {
 }
 
 .header {
-  padding: 16px;
+  flex: 0 0 auto;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
+  background-color: var(--chrome);
 }
 
 .header--row {
@@ -49,14 +82,23 @@ body.in-tab {
 
 .header__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .panel {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 .panel__message {
@@ -72,6 +114,9 @@ body.in-tab {
 
 .panel__error {
   margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: var(--accent-soft);
   color: var(--danger);
   font-size: 13px;
 }
@@ -95,34 +140,47 @@ body.in-tab {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .field__label {
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .field__input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 11px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background-color: #fff;
+  border-radius: 8px;
+  background-color: var(--surface);
   color: inherit;
   font: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.field__input::placeholder {
+  color: var(--muted);
+}
+
+.field__input:hover {
+  border-color: var(--line-strong);
 }
 
 .field__input:focus {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .form__error {
@@ -141,46 +199,115 @@ body.in-tab {
 .button {
   flex: 1;
   padding: 9px 12px;
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  background-color: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background-color: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-weight: 500;
+  font-weight: 550;
   cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease,
+    box-shadow 0.12s ease, transform 0.06s ease;
 }
 
 .button:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.06);
+  border-color: var(--ink);
+  box-shadow: var(--lift);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
 .button--primary {
-  background-color: var(--ink);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .button--primary:hover:not(:disabled) {
-  background-color: #333;
+  border-color: var(--accent);
+  filter: brightness(1.08);
+}
+
+.button--google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.button--google svg {
+  flex: 0 0 auto;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.divider::before,
+.divider::after {
+  flex: 1;
+  height: 1px;
+  background-color: var(--line);
+  content: "";
 }
 
 .button--quiet {
   flex: 0 0 auto;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-color: transparent;
+  background-color: transparent;
+  color: var(--muted);
   font-size: 13px;
-  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* The theme glyphs have no Times New Roman shapes and would fall back to
+   whatever font does carry them, at an unpredictable size. */
+.button--icon {
+  flex: 0 0 auto;
+  width: 28px;
+  padding: 5px 0;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.button--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background-color: rgba(127, 127, 127, 0.16);
+  box-shadow: none;
+  color: var(--ink);
 }
 
 /* Footer */
 
 .footer {
-  padding: 12px 16px;
+  flex: 0 0 auto;
+  padding: 10px 16px;
   border-top: 1px solid var(--line);
+  background-color: var(--chrome);
 }
 
 .footer--row {
@@ -232,27 +359,37 @@ body.in-tab {
   flex-direction: column;
   gap: 2px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 10px;
+  background-color: var(--surface);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease,
+    transform 0.06s ease;
 }
 
 .note:hover {
-  border-color: var(--ink);
+  border-color: var(--accent);
+  box-shadow: var(--lift);
+}
+
+.note:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .note:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .note__title {
-  font-weight: 600;
+  font-weight: 620;
+  letter-spacing: -0.005em;
 }
 
 .note__preview {
@@ -264,9 +401,19 @@ body.in-tab {
 }
 
 .note__time {
-  margin-top: 2px;
+  margin-top: 4px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.notes__empty {
+  margin-top: 8px;
+  padding: 22px 16px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  text-align: center;
 }
 
 /* Editor */
@@ -274,20 +421,46 @@ body.in-tab {
 .panel--editor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   overflow: hidden;
+  padding: 14px 16px;
+  background-color: var(--surface);
+}
+
+.panel--editor .field__input {
+  padding-inline: 0;
+  border-color: transparent;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.panel--editor .field__input:hover {
+  border-color: transparent;
+}
+
+.panel--editor .field__input:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .editor__title {
-  font-size: 15px;
-  font-weight: 600;
+  padding-block: 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.panel--editor .editor__title:focus {
+  border-bottom-color: var(--accent);
 }
 
 .editor__body {
   flex: 1;
   min-height: 120px;
   resize: none;
-  line-height: 1.5;
+  font-size: 14.5px;
+  line-height: 1.65;
 }
 
 /* Delete confirmation */
@@ -295,12 +468,12 @@ body.in-tab {
 .confirm {
   padding: 12px;
   border: 1px solid var(--danger);
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 10px;
+  background-color: var(--ground);
 }
 
 .confirm__text {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 13px;
 }
 
@@ -308,12 +481,25 @@ body.in-tab {
   color: var(--danger);
 }
 
+.button--danger:hover:not(:disabled) {
+  border-color: transparent;
+  background-color: var(--accent-soft);
+  color: var(--danger);
+}
+
 .button--danger-filled {
   border-color: var(--danger);
   background-color: var(--danger);
-  color: #fff;
+  color: var(--danger-ink);
 }
 
 .button--danger-filled:hover:not(:disabled) {
-  background-color: #6d1628;
+  border-color: var(--danger);
+  filter: brightness(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }
