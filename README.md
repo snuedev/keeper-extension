@@ -17,6 +17,38 @@ files that Linux then cannot delete.
 npm install
 ```
 
+## Firebase config (one time)
+
+The extension needs to know which Firebase project to talk to. Those values live
+in a `.env` file at the top of the repo, which is not committed:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the six values from the Firebase console, under **Project settings
+-> General -> Your apps -> SDK setup and configuration**. If you skip this, the
+build still succeeds but the popup fails on open with a message naming the
+variables it wanted.
+
+There is no `dotenv` package to install — Vite reads `.env` itself, and swaps
+each `import.meta.env.VITE_FIREBASE_*` reference for a plain string when it
+builds. The `VITE_` prefix is required: Vite deliberately keeps variables
+without it out of the bundle.
+
+**These values are not passwords.** A Firebase web API key only says which
+project a request belongs to, and it ends up inside the built bundle on every
+user's machine no matter where you keep it — you can read it out of
+`dist/assets/*.js` yourself. The reason it lives in `.env` is so you can point
+the extension at a scratch project while developing and the real one for
+release, without editing code. What actually stops one person reading another
+person's notes is `firestore.rules` plus Authentication.
+
+GitHub Actions has its own copy of these six values, stored as repository
+secrets, because `.env` is not committed. If you add or rename one, update it in
+**Settings -> Secrets and variables -> Actions** too, or CI will build a broken
+bundle.
+
 ## Firestore security rules (one time)
 
 `firestore.rules` is what actually stops one person reading another person's
@@ -74,6 +106,8 @@ chrome-extension/
 store-assets/    promo image for the Chrome Web Store listing, not shipped
 public/          Firebase Hosting site (the privacy policy page, Phase 4)
 firestore.rules  who is allowed to read and write which notes
+.env.example     template for .env - copy it, then fill in your Firebase values
+.env             your actual Firebase config; gitignored, never committed
 ```
 
 Watch out for the two different `public/` folders: `chrome-extension/public/` is
