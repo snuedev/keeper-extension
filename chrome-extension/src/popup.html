@@ -6,7 +6,23 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div id="app"></div>
+    <!--
+      This is the loading view. It sits in the HTML rather than in a JavaScript
+      view file so that it paints immediately, before the bundle has even
+      parsed. Firebase takes a moment to look up the stored session, and without
+      something here the popup would flash the sign-in screen at an
+      already-signed-in user every single time they open it.
+
+      popup.js replaces all of this the first time the auth state arrives.
+    -->
+    <div id="app">
+      <header class="header">
+        <h1 class="header__title">Keeper</h1>
+      </header>
+      <main class="panel">
+        <p class="panel__hint">Loading…</p>
+      </main>
+    </div>
     <script type="module" src="./popup.js"></script>
   </body>
 </html>
