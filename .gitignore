@@ -62,8 +62,11 @@ node_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
+# dotenv environment variables files. Vite reads .env, .env.local and
+# .env.<mode>, so ignore the whole family and keep only the template.
 .env
+.env.*
+!.env.example
 
 # dataconnect generated files
 .dataconnect

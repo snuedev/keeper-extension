@@ -5,13 +5,29 @@ import { getFirestore } from 'firebase/firestore';
 // A Firebase web API key identifies the project rather than authenticating it,
 // and is meant to ship in client code. Access is controlled by firestore.rules.
 const firebaseConfig = {
-  apiKey: 'AIzaSyCEIGUChToGQwsiQ00FuA8oHeXNiryayyY',
-  authDomain: 'keeperext.firebaseapp.com',
-  projectId: 'keeperext',
-  storageBucket: 'keeperext.firebasestorage.app',
-  messagingSenderId: '222138233823',
-  appId: '1:222138233823:web:27f1e6c19fa7c5c3120a6a',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
+// If .env is missing or a line is left blank, the values above come out
+// `undefined` and initializeApp() still succeeds -- the extension then fails
+// later with a confusing auth error instead. Checking here turns that into one
+// clear message naming the variables you actually need to set.
+const missing = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => `VITE_FIREBASE_${key.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()}`);
+
+if (missing.length > 0) {
+  throw new Error(
+    `Firebase config is missing: ${missing.join(', ')}.\n` +
+      'Copy .env.example to .env at the top of the repo, fill in the values ' +
+      'from your Firebase project, and rebuild.',
+  );
+}
 
 const app = initializeApp(firebaseConfig);
 
