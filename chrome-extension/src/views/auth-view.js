@@ -1,19 +1,42 @@
-// The sign-in / create-account panel. Shown whenever nobody is signed in.
-//
-// Every view in this project follows the same shape: a single exported function
-// that takes the element to draw into, fills it, and wires up its own event
-// listeners. Switching views means calling a different one of these — the old
-// markup and the listeners attached to it go away together.
+import {
+  describeAuthError,
+  isCancelledSignIn,
+  signIn,
+  signInWithGoogle,
+  signUp,
+} from '../lib/auth.js';
+import { themeToggleMarkup, wireThemeToggle } from '../lib/theme.js';
 
-import { describeAuthError, signIn, signUp } from '../lib/auth.js';
+// Google's brand guidelines require their own mark on the button, and an
+// inline SVG is the only way to ship one under the extension's CSP.
+const GOOGLE_MARK = `
+  <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1z"/>
+    <path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.6-3.9-12.4-9.1H4.3v5.7C7.9 41.1 15.4 46 24 46z"/>
+    <path fill="#FBBC05" d="M11.6 28.1c-.5-1.3-.7-2.7-.7-4.1s.3-2.8.7-4.1v-5.7H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8l7.3-5.7z"/>
+    <path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.3 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.7c1.8-5.2 6.6-9.1 12.4-9.1z"/>
+  </svg>
+`;
 
 export function renderAuthView(container) {
   container.innerHTML = `
-    <header class="header">
+    <header class="header header--row">
       <h1 class="header__title">Keeper</h1>
+      <div class="header__actions">${themeToggleMarkup}</div>
     </header>
     <main class="panel">
       <p class="panel__hint">Sign in, or create an account to get started.</p>
+
+      <button
+        class="button button--google"
+        type="button"
+        data-action="google"
+      >
+        ${GOOGLE_MARK}
+        Continue with Google
+      </button>
+
+      <p class="divider">or</p>
 
       <form class="form" novalidate>
         <label class="field">
@@ -45,18 +68,20 @@ export function renderAuthView(container) {
           </button>
         </div>
       </form>
+
     </main>
   `;
 
+  wireThemeToggle(container);
+
   const form = container.querySelector('.form');
+  const googleButton = container.querySelector('[data-action="google"]');
   const emailInput = form.querySelector('input[name="email"]');
   const passwordInput = form.querySelector('input[name="password"]');
   const errorText = form.querySelector('.form__error');
   const buttons = form.querySelectorAll('button');
 
   function showError(message) {
-    // textContent, never innerHTML: anything that came from outside this file
-    // is treated as text, so a stray "<" can never turn into markup.
     errorText.textContent = message;
     errorText.hidden = false;
   }
@@ -67,15 +92,12 @@ export function renderAuthView(container) {
   }
 
   function setBusy(isBusy) {
-    // These are network calls. Without this you can fire off three sign-ins by
-    // impatiently clicking three times.
     buttons.forEach((button) => {
       button.disabled = isBusy;
     });
+    googleButton.disabled = isBusy;
   }
 
-  // `attempt` is either signIn or signUp. Both take (email, password) and both
-  // return a promise, so one handler covers both buttons.
   async function submit(attempt) {
     clearError();
 
@@ -90,8 +112,6 @@ export function renderAuthView(container) {
     setBusy(true);
     try {
       await attempt(email, password);
-      // Nothing to do on success. The auth listener in popup.js notices the new
-      // user and swaps this view out for the list.
     } catch (error) {
       showError(describeAuthError(error));
       setBusy(false);
@@ -99,9 +119,6 @@ export function renderAuthView(container) {
   }
 
   form.addEventListener('submit', (event) => {
-    // Without this the browser tries to submit the form somewhere and navigates
-    // the popup to a dead URL. There is no server here — every form in an
-    // extension needs this line.
     event.preventDefault();
     submit(signIn);
   });
@@ -110,8 +127,24 @@ export function renderAuthView(container) {
     .querySelector('[data-action="sign-up"]')
     .addEventListener('click', () => submit(signUp));
 
-  // Typing is the user's way of saying "I know, I'm fixing it".
   form.addEventListener('input', clearError);
+
+  googleButton.addEventListener('click', async () => {
+    clearError();
+    setBusy(true);
+
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      // Chrome closes this popup as soon as the consent window opens, so on the
+      // usual path nothing below ever runs. It matters when Keeper is open in a
+      // tab, which survives the flow.
+      if (!isCancelledSignIn(error)) {
+        showError(describeAuthError(error));
+      }
+      setBusy(false);
+    }
+  });
 
   emailInput.focus();
 }

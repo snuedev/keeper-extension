@@ -1,9 +1,3 @@
-// Thin wrappers over the four Firebase Auth calls the popup needs, plus a
-// translator that turns Firebase's error codes into something a person can read.
-//
-// The wrappers exist so that no view file imports from 'firebase/auth'
-// directly. If the auth provider ever changes, this is the only file to touch.
-
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -12,6 +6,13 @@ import {
 } from 'firebase/auth';
 
 import { auth } from './firebase.js';
+import { SIGN_IN_WITH_GOOGLE } from './messages.js';
+
+function keeperError(code) {
+  const error = new Error(code);
+  error.code = code;
+  return error;
+}
 
 export function signUp(email, password) {
   return createUserWithEmailAndPassword(auth, email, password);
@@ -21,26 +22,41 @@ export function signIn(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
 }
 
+// Run in the service worker rather than here: the consent window takes focus,
+// and a popup that loses focus is torn down along with any promise it is
+// waiting on. onAuthChange then reports the result through the auth database
+// both contexts share.
+export async function signInWithGoogle() {
+  if (!globalThis.chrome?.runtime?.sendMessage) {
+    throw keeperError('keeper/google-unavailable');
+  }
+
+  const reply = await chrome.runtime.sendMessage({
+    type: SIGN_IN_WITH_GOOGLE,
+  });
+
+  if (!reply?.ok) {
+    throw keeperError(reply?.code ?? 'keeper/google-no-token');
+  }
+
+  return reply;
+}
+
+export function isCancelledSignIn(error) {
+  return error?.code === 'keeper/google-cancelled';
+}
+
 export function signOutUser() {
   return signOut(auth);
 }
 
-// Fires once shortly after the popup opens — with a user object or with null —
-// and then again on every sign-in and sign-out. That single callback is what
-// decides which view you are looking at.
-//
-// Returns an unsubscribe function. The popup never calls it (the whole page is
-// thrown away when the popup closes), but returning it keeps this wrapper
-// honest about what the SDK gives back.
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-// Firebase ships email-enumeration protection on by default, which means a
-// wrong password and an email that was never registered both come back as
-// 'auth/invalid-credential'. That is deliberate — it stops people probing your
-// project to find out which email addresses have accounts. So there is one
-// message covering both, and no attempt to guess which happened.
+// Firebase's email-enumeration protection reports a wrong password and an
+// unregistered email identically as 'auth/invalid-credential', so the two
+// cannot be told apart here and deliberately share one message.
 const MESSAGES = {
   'auth/invalid-credential': 'Email or password is incorrect.',
   'auth/invalid-email': 'That does not look like an email address.',
@@ -51,6 +67,11 @@ const MESSAGES = {
   'auth/network-request-failed': 'Could not reach Keeper. Check your connection.',
   'auth/operation-not-allowed':
     'Email sign-in is switched off for this project. Enable it in the Firebase console.',
+  'auth/account-exists-with-different-credential':
+    'That email is already registered with a password. Sign in with it instead.',
+  'keeper/google-unavailable':
+    'Google sign-in needs Keeper to be running as an installed extension.',
+  'keeper/google-no-token': 'Google did not return a sign-in. Try again.',
 };
 
 export function describeAuthError(error) {

@@ -1,9 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import { fileURLToPath } from 'node:url';
 
-// Resolve a path relative to this config file. `import.meta.url` is the ES
-// module equivalent of the older `__dirname`, which does not exist in a file
-// loaded as a module ("type": "module" in package.json).
 const fromHere = (path) => fileURLToPath(new URL(path, import.meta.url));
 
 // Where .env lives. This is deliberately not `root` (see envDir below).
@@ -74,7 +71,19 @@ export default defineConfig(({ command, mode }) => {
       target: 'esnext',
 
       rollupOptions: {
-        input: { popup: fromHere('./chrome-extension/src/popup.html') },
+        input: {
+          popup: fromHere('./chrome-extension/src/popup.html'),
+          background: fromHere('./chrome-extension/src/background.js'),
+        },
+        
+        output: {
+        // manifest.json names the service worker by path, so it cannot carry a
+        // content hash the way the popup bundle does.
+        entryFileNames: (chunk) =>
+          chunk.name === 'background'
+            ? 'background.js'
+            : 'assets/[name]-[hash].js',
+          },
       },
     },
   };

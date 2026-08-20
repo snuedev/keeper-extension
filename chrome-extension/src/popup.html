@@ -7,13 +7,9 @@
   </head>
   <body>
     <!--
-      This is the loading view. It sits in the HTML rather than in a JavaScript
-      view file so that it paints immediately, before the bundle has even
-      parsed. Firebase takes a moment to look up the stored session, and without
-      something here the popup would flash the sign-in screen at an
-      already-signed-in user every single time they open it.
-
-      popup.js replaces all of this the first time the auth state arrives.
+      Markup rather than a view file so it paints before the bundle parses,
+      otherwise the popup flashes the sign-in screen at a signed-in user while
+      Firebase looks up the stored session. popup.js replaces it.
     -->
     <div id="app">
       <header class="header">

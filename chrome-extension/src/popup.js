@@ -1,23 +1,22 @@
-// Entry point for the popup page, and the only file that decides what is on
-// screen.
-//
-// Two things drive that decision. Firebase says whether somebody is signed in,
-// which picks between the sign-in panel and the notes; and the notes views hand
-// back callbacks — open this note, go back to the list — which move between the
-// two signed-in screens. No view ever swaps itself out. That way there is
-// exactly one place to look when the wrong thing is showing.
-
 import { onAuthChange } from './lib/auth.js';
+import { clearDraftsFor } from './lib/drafts.js';
+import { isTabView } from './lib/tab.js';
+import { loadTheme } from './lib/theme.js';
 import { renderAuthView } from './views/auth-view.js';
 import { renderEditorView } from './views/editor-view.js';
 import { renderListView } from './views/list-view.js';
 
 const app = document.querySelector('#app');
 
-// Views may hand back a teardown function — the list view has a live Firestore
-// subscription, the editor has a save timer — and whatever the last view left
-// behind has to be stopped before the next one draws over it. Otherwise a
-// Firestore update would fire a callback at markup that is no longer on screen.
+if (isTabView()) {
+  document.body.classList.add('in-tab');
+}
+
+// Extension pages cannot run inline scripts, so the stored choice can only be
+// applied once the bundle has loaded. Kicked off before anything else to keep
+// the window in which the system theme shows through as short as possible.
+loadTheme();
+
 let tearDownCurrentView = null;
 
 function show(renderView) {
@@ -41,15 +40,24 @@ function showEditor(user, note) {
   );
 }
 
-// Remember: the popup page is destroyed the moment the popup closes. Nothing in
-// this file survives that, which is why anything worth keeping has to be in
-// Firestore before then.
+let signedInUid = null;
+
 onAuthChange((user) => {
   if (user) {
+    signedInUid = user.uid;
     showList(user);
-  } else {
-    // Signing out from anywhere, including the editor, lands here — and `show`
-    // tears down whatever that screen had running on its way past.
-    show(() => renderAuthView(app));
+    return;
   }
+
+  // Covers every way a session ends, not just the sign-out button: an expired
+  // token or an account signed out from another device lands here too, and
+  // leaving drafts behind would leave note text in the browser profile for
+  // whoever opens Keeper next. A failure is not worth reporting over — the next
+  // popup opens on this same branch and tries again.
+  if (signedInUid) {
+    clearDraftsFor(signedInUid).catch(() => {});
+    signedInUid = null;
+  }
+
+  show(() => renderAuthView(app));
 });

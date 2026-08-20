@@ -1,40 +1,76 @@
-/* A Chrome popup is roughly 360x500. Everything here is sized for that, not
-   for a desktop window. The width has to be set explicitly: a popup with no
-   stated width collapses to fit its content. */
-
+/* light-dark() picks its first colour under a light color-scheme and its second
+   under a dark one, so the two palettes stay on one line each and the theme
+   attribute below only has to switch color-scheme. */
 :root {
-  --pink: #ffc5d3;
-  --ink: #1a1a1a;
-  --muted: #6b6b6b;
-  --line: rgba(0, 0, 0, 0.1);
-  --danger: #8c1c34;
+  color-scheme: light dark;
+
+  --ground: light-dark(#fff5f7, #141013);
+  --chrome: light-dark(#ffc5d3, #241b1f);
+  --surface: light-dark(#ffffff, #1f181b);
+  --ink: light-dark(#241c1f, #f4eaed);
+  --muted: light-dark(#6b5c60, #ae9ba2);
+  --line: light-dark(rgba(36, 28, 31, 0.12), rgba(255, 255, 255, 0.12));
+  --line-strong: light-dark(rgba(36, 28, 31, 0.3), rgba(255, 255, 255, 0.3));
+  --accent: light-dark(#b12a4b, #ff9cb5);
+  --accent-ink: light-dark(#ffffff, #2a1018);
+  --accent-soft: light-dark(#ffe3ea, #3a2029);
+  --danger: light-dark(#8c1c34, #ff9e9e);
+  --danger-ink: light-dark(#ffffff, #2a1018);
+  --ring: light-dark(rgba(177, 42, 75, 0.35), rgba(255, 156, 181, 0.4));
+
+  /* light-dark() only accepts colours, so the shadow is assembled from two of
+     them rather than swapped whole. */
+  --shadow-near: light-dark(rgba(36, 28, 31, 0.05), rgba(0, 0, 0, 0.4));
+  --shadow-far: light-dark(rgba(36, 28, 31, 0.06), rgba(0, 0, 0, 0.3));
+  --lift: 0 1px 2px var(--shadow-near), 0 2px 6px var(--shadow-far);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* A Chrome popup with no stated width collapses to fit its content, and is
+   capped at roughly 360x600. */
 body {
   width: 360px;
-  /* A fixed height rather than a minimum, so the panel does not jump between a
-     short sign-in screen and a long list of notes. 500px is close to the tallest
-     a Chrome popup is allowed to be (600px), and it gives the editor's textarea
-     room to be worth typing in. */
   height: 500px;
   margin: 0;
-  background-color: var(--pink);
+  background-color: var(--ground);
   color: var(--ink);
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.in-tab {
+  width: min(760px, 100%);
+  height: 100vh;
+  margin: 0 auto;
+  border-inline: 1px solid var(--line);
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .header {
-  padding: 16px;
+  flex: 0 0 auto;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
+  background-color: var(--chrome);
 }
 
-/* Title on the left, an action on the right. */
 .header--row {
   display: flex;
   align-items: center;
@@ -44,25 +80,23 @@ body {
 
 .header__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
-/* Header, panel, footer stacked top to bottom, with the panel taking whatever
-   height is left over. That is what pins the footer to the bottom of the popup
-   instead of letting it float up under a short list. */
-#app {
+.header__actions {
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  align-items: center;
+  gap: 2px;
 }
 
 .panel {
   flex: 1;
   padding: 16px;
-  /* Twenty notes are taller than the popup. Scroll the middle, not the page,
-     so the header and footer stay put. */
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 .panel__message {
@@ -78,8 +112,25 @@ body {
 
 .panel__error {
   margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: var(--accent-soft);
   color: var(--danger);
   font-size: 13px;
+}
+
+/* Read by a screen reader, painted for nobody. display: none would take it out
+   of the accessibility tree along with everything else. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Forms */
@@ -87,37 +138,47 @@ body {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 14px;
+  margin-top: 18px;
 }
 
-/* Each field is a <label> wrapping its own input, so clicking the word "Email"
-   focuses the box. That is free with this markup and needs no `for` attribute
-   or matching id. */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .field__label {
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .field__input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 11px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background-color: #fff;
+  border-radius: 8px;
+  background-color: var(--surface);
   color: inherit;
   font: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.field__input::placeholder {
+  color: var(--muted);
+}
+
+.field__input:hover {
+  border-color: var(--line-strong);
 }
 
 .field__input:focus {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .form__error {
@@ -136,54 +197,131 @@ body {
 .button {
   flex: 1;
   padding: 9px 12px;
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  background-color: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background-color: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-weight: 500;
+  font-weight: 550;
   cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease,
+    box-shadow 0.12s ease, transform 0.06s ease;
 }
 
 .button:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.06);
+  border-color: var(--ink);
+  box-shadow: var(--lift);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
 .button--primary {
-  background-color: var(--ink);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .button--primary:hover:not(:disabled) {
-  background-color: #333;
+  border-color: var(--accent);
+  filter: brightness(1.08);
 }
 
-/* A secondary action that should not compete with the content. */
+.button--google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.button--google svg {
+  flex: 0 0 auto;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.divider::before,
+.divider::after {
+  flex: 1;
+  height: 1px;
+  background-color: var(--line);
+  content: "";
+}
+
 .button--quiet {
   flex: 0 0 auto;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-color: transparent;
+  background-color: transparent;
+  color: var(--muted);
   font-size: 13px;
-  text-decoration: underline;
+  font-weight: 500;
+}
+
+.button--icon {
+  flex: 0 0 auto;
+  width: 28px;
+  padding: 5px 0;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.button--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background-color: rgba(127, 127, 127, 0.16);
+  box-shadow: none;
+  color: var(--ink);
 }
 
 /* Footer */
 
 .footer {
-  padding: 12px 16px;
+  flex: 0 0 auto;
+  padding: 10px 16px;
   border-top: 1px solid var(--line);
+  background-color: var(--chrome);
+}
+
+.footer--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .footer__account {
   color: var(--muted);
   font-size: 12px;
-  /* Long email addresses would otherwise push the popup wider than 360px. */
   word-break: break-all;
+}
+
+.footer__status {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 /* Notes list */
@@ -194,56 +332,62 @@ body {
   gap: 12px;
 }
 
-/* .button sets `flex: 1` so that buttons sitting side by side share a row
-   evenly. Inside this column that would stretch "New note" to fill the whole
-   popup, so it is turned off again here. */
-.panel--list > .button {
+.panel--list > .button,
+.search {
   flex: 0 0 auto;
+}
+
+.search::-webkit-search-cancel-button {
+  cursor: pointer;
 }
 
 .notes {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* A <ul> comes with bullets and a big left indent by default. */
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* Each card is a real <button>, so it can be reached by Tab, activated with
-   Enter or Space, and announced as a button — all of which a clickable <div>
-   would have to reimplement badly. These rules undo the button look. */
 .note {
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 10px;
+  background-color: var(--surface);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease,
+    transform 0.06s ease;
 }
 
 .note:hover {
-  border-color: var(--ink);
+  border-color: var(--accent);
+  box-shadow: var(--lift);
+}
+
+.note:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .note:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .note__title {
-  font-weight: 600;
+  font-weight: 620;
+  letter-spacing: -0.005em;
 }
 
-/* One line only. The three properties have to appear together: ellipsis needs
-   something to clip, and nowrap is what stops the text wrapping instead. */
 .note__preview {
   overflow: hidden;
   color: var(--muted);
@@ -252,29 +396,67 @@ body {
   text-overflow: ellipsis;
 }
 
+.note__time {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.notes__empty {
+  margin-top: 8px;
+  padding: 22px 16px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  text-align: center;
+}
+
 /* Editor */
 
 .panel--editor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  /* The textarea does its own scrolling, so the panel around it should not. */
+  gap: 6px;
   overflow: hidden;
+  padding: 14px 16px;
+  background-color: var(--surface);
+}
+
+.panel--editor .field__input {
+  padding-inline: 0;
+  border-color: transparent;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.panel--editor .field__input:hover {
+  border-color: transparent;
+}
+
+.panel--editor .field__input:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .editor__title {
-  font-size: 15px;
-  font-weight: 600;
+  padding-block: 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.panel--editor .editor__title:focus {
+  border-bottom-color: var(--accent);
 }
 
 .editor__body {
-  /* Take all the height the title and footer are not using. */
   flex: 1;
   min-height: 120px;
-  /* The drag handle would let you pull the textarea past the edge of a popup
-     that cannot grow with it. */
   resize: none;
-  line-height: 1.5;
+  font-size: 14.5px;
+  line-height: 1.65;
 }
 
 /* Delete confirmation */
@@ -282,12 +464,12 @@ body {
 .confirm {
   padding: 12px;
   border: 1px solid var(--danger);
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 10px;
+  background-color: var(--ground);
 }
 
 .confirm__text {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 13px;
 }
 
@@ -295,17 +477,25 @@ body {
   color: var(--danger);
 }
 
+.button--danger:hover:not(:disabled) {
+  border-color: transparent;
+  background-color: var(--accent-soft);
+  color: var(--danger);
+}
+
 .button--danger-filled {
   border-color: var(--danger);
   background-color: var(--danger);
-  color: #fff;
+  color: var(--danger-ink);
 }
 
 .button--danger-filled:hover:not(:disabled) {
-  background-color: #6d1628;
+  border-color: var(--danger);
+  filter: brightness(1.1);
 }
 
-.footer__status {
-  color: var(--muted);
-  font-size: 12px;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

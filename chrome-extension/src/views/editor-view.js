@@ -1,24 +1,7 @@
-// One note, open for writing. Title, body, a way back, and a way to delete it.
-//
-// There is no Save button on purpose. The popup is destroyed the instant it
-// loses focus — click the page behind it and this whole file's variables are
-// gone — so a button you have to remember to press is a button you will
-// sometimes forget, and the note goes with it. Instead the note saves itself
-// shortly after you stop typing.
+import { clearDraft, readDraft, saveDraft } from '../lib/drafts.js';
+import { deleteNote, describeNotesError, updateNote } from '../lib/notes.js';
+import { themeToggleMarkup, wireThemeToggle } from '../lib/theme.js';
 
-import {
-  deleteNote,
-  describeNotesError,
-  updateNote,
-} from '../lib/notes.js';
-
-// How long to wait after the last keystroke before writing to Firestore.
-//
-// Saving on every keystroke would work, but each one is a network round trip
-// and a billable Firestore write — "hello" typed slowly would be five of them.
-// Waiting for a pause collapses that into one. Long enough to catch a normal
-// pause between words, short enough that you would have to be trying to close
-// the popup inside the window.
 const SAVE_DELAY_MS = 800;
 
 export function renderEditorView(container, user, note, { onBack }) {
@@ -27,13 +10,16 @@ export function renderEditorView(container, user, note, { onBack }) {
       <button class="button button--quiet" type="button" data-action="back">
         ← All notes
       </button>
-      <button
-        class="button button--quiet button--danger"
-        type="button"
-        data-action="delete"
-      >
-        Delete
-      </button>
+      <div class="header__actions">
+        ${themeToggleMarkup}
+        <button
+          class="button button--quiet button--danger"
+          type="button"
+          data-action="delete"
+        >
+          Delete
+        </button>
+      </div>
     </header>
     <main class="panel panel--editor">
       <input
@@ -52,9 +38,8 @@ export function renderEditorView(container, user, note, { onBack }) {
 
       <!--
         Chrome suppresses window.confirm() in an extension popup, and anything
-        that steals focus closes the popup outright — which would take the
-        unsaved note with it. So the confirmation is ordinary markup that lives
-        inside the page.
+        that takes focus closes the popup outright, so the confirmation has to
+        be markup inside the page.
       -->
       <div class="confirm" hidden>
         <p class="confirm__text">Delete this note? There is no undo.</p>
@@ -73,13 +58,11 @@ export function renderEditorView(container, user, note, { onBack }) {
       </div>
     </main>
     <footer class="footer">
-      <!--
-        role="status" makes a screen reader read this out when it changes,
-        without yanking focus away from what you are typing.
-      -->
       <span class="footer__status" role="status"></span>
     </footer>
   `;
+
+  wireThemeToggle(container);
 
   const titleInput = container.querySelector('.editor__title');
   const bodyInput = container.querySelector('.editor__body');
@@ -89,18 +72,19 @@ export function renderEditorView(container, user, note, { onBack }) {
   const backButton = container.querySelector('[data-action="back"]');
   const deleteButton = container.querySelector('[data-action="delete"]');
 
-  // .value, not an attribute in the template above: the note is the user's own
-  // text, and setting it as a property means it is never parsed as markup.
   titleInput.value = note.title ?? '';
   bodyInput.value = note.body ?? '';
 
-  // What has changed since the last successful write. Only changed fields go to
-  // Firestore, so typing in the title never rewrites the body.
   let unsaved = {};
   let saveTimer = null;
-  // Set once the note is deleted, so a save that was already queued does not
-  // quietly recreate it.
-  let gone = false;
+  let deleted = false;
+  let torndown = false;
+
+  // What Firestore is believed to hold, updated as writes succeed. A draft
+  // records this alongside the text, so a restore can tell "nobody else touched
+  // this" from "someone edited it elsewhere" without comparing a local clock
+  // against Firestore's.
+  let saved = { title: titleInput.value, body: bodyInput.value };
 
   function setStatus(message) {
     statusText.textContent = message;
@@ -116,15 +100,11 @@ export function renderEditorView(container, user, note, { onBack }) {
     errorText.hidden = true;
   }
 
-  // Saves run one after another rather than all at once. Leaving the title box
-  // by clicking "All notes" fires a blur save and then the back button's own
-  // save, and without this the second could finish first and report "saved"
-  // while the first was still in the air and about to fail.
+  // Serialized so an earlier save cannot land after a later one and report a
+  // stale result: leaving the title by clicking "All notes" fires a blur save
+  // and the back button's save back to back.
   let saves = Promise.resolve(true);
 
-  // Returns whether the note is safely stored, so the caller can decide whether
-  // it is alright to navigate away. Cancels the pending timer straight away —
-  // that part cannot wait its turn in the queue.
   function saveNow() {
     clearTimeout(saveTimer);
     saveTimer = null;
@@ -136,7 +116,7 @@ export function renderEditorView(container, user, note, { onBack }) {
     const fields = unsaved;
     unsaved = {};
 
-    if (gone || Object.keys(fields).length === 0) {
+    if (deleted || Object.keys(fields).length === 0) {
       return true;
     }
 
@@ -144,12 +124,17 @@ export function renderEditorView(container, user, note, { onBack }) {
     try {
       await updateNote(user.uid, note.id, fields);
       clearError();
-      // More may have been typed while that was in the air.
-      setStatus(Object.keys(unsaved).length > 0 ? 'Saving…' : 'Saved');
+      saved = { ...saved, ...fields };
+
+      const stillTyping = Object.keys(unsaved).length > 0;
+
+      if (!stillTyping) {
+        clearDraft(user.uid, note.id);
+      }
+
+      setStatus(stillTyping ? 'Saving…' : 'Saved');
       return true;
     } catch (error) {
-      // Put the changes back so the next save picks them up again rather than
-      // dropping them on the floor.
       unsaved = { ...fields, ...unsaved };
       showError(describeNotesError(error));
       setStatus('Not saved');
@@ -160,8 +145,15 @@ export function renderEditorView(container, user, note, { onBack }) {
   function scheduleSave(fields) {
     unsaved = { ...unsaved, ...fields };
     setStatus('Editing…');
-    // Restarting the timer on every keystroke is what makes this fire once
-    // after you stop, rather than once every 800ms while you type.
+
+    // Written without a delay of its own: the delay below is exactly the window
+    // where the text exists only in a popup that closes when it loses focus.
+    saveDraft(user.uid, note.id, {
+      title: titleInput.value,
+      body: bodyInput.value,
+      base: saved,
+    });
+
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNow, SAVE_DELAY_MS);
   }
@@ -174,8 +166,6 @@ export function renderEditorView(container, user, note, { onBack }) {
     scheduleSave({ body: bodyInput.value });
   });
 
-  // Leaving the field is a strong hint that you are done with it, so do not sit
-  // on the change waiting for a timer that may never get to run.
   titleInput.addEventListener('blur', saveNow);
   bodyInput.addEventListener('blur', saveNow);
 
@@ -184,8 +174,6 @@ export function renderEditorView(container, user, note, { onBack }) {
     if (await saveNow()) {
       onBack();
     } else {
-      // The write failed and the text only exists in this popup. Staying put is
-      // the only thing that keeps it on screen.
       backButton.disabled = false;
     }
   });
@@ -208,15 +196,16 @@ export function renderEditorView(container, user, note, { onBack }) {
     .addEventListener('click', async (event) => {
       event.currentTarget.disabled = true;
 
-      // Cancel the pending save first. Without this, a save queued a moment ago
-      // could land after the delete and write the note back into existence.
+      // Must happen before the delete, or a queued save lands after it and
+      // recreates the note.
       clearTimeout(saveTimer);
       saveTimer = null;
       unsaved = {};
 
       try {
         await deleteNote(user.uid, note.id);
-        gone = true;
+        deleted = true;
+        clearDraft(user.uid, note.id);
         onBack();
       } catch (error) {
         showError(describeNotesError(error));
@@ -225,8 +214,57 @@ export function renderEditorView(container, user, note, { onBack }) {
       }
     });
 
-  // A brand new note opens with the cursor in the title; an existing one opens
-  // in the body, which is where you are far more likely to be adding to it.
+  // Chrome's own "save this page" dialog would take focus and close the popup
+  // with the note still in it.
+  function handleShortcut(event) {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    // Synthetic keydowns from password managers and some IMEs arrive with no
+    // key at all.
+    if (event.key?.toLowerCase() !== 's') return;
+
+    event.preventDefault();
+    saveNow();
+  }
+
+  document.addEventListener('keydown', handleShortcut);
+
+  async function restoreDraft() {
+    const draft = await readDraft(user.uid, note.id);
+    if (!draft || deleted || torndown) return;
+
+    const remote = { title: note.title ?? '', body: note.body ?? '' };
+
+    const typedSinceOpen =
+      titleInput.value !== remote.title || bodyInput.value !== remote.body;
+    if (typedSinceOpen) return;
+
+    const draftTitle = draft.title ?? '';
+    const draftBody = draft.body ?? '';
+
+    if (draftTitle === remote.title && draftBody === remote.body) {
+      clearDraft(user.uid, note.id);
+      return;
+    }
+
+    // The note moved on after this draft was taken, so something else — another
+    // window, another machine — has written to it since. Applying the draft
+    // would silently throw that away, so the stored version stays on screen and
+    // the draft stays on disk rather than either being destroyed.
+    const base = draft.base ?? remote;
+    if (base.title !== remote.title || base.body !== remote.body) {
+      showError(
+        'This note changed somewhere else, so your unsaved copy was not applied.',
+      );
+      return;
+    }
+
+    titleInput.value = draftTitle;
+    bodyInput.value = draftBody;
+
+    scheduleSave({ title: draftTitle, body: draftBody });
+    setStatus('Restored unsaved changes');
+  }
+
   if (titleInput.value) {
     bodyInput.focus();
   } else {
@@ -234,8 +272,11 @@ export function renderEditorView(container, user, note, { onBack }) {
   }
 
   setStatus('Saved');
+  restoreDraft();
 
-  // Leaving the editor for any reason — including signing out — must not leave
-  // a timer running against markup that has been thrown away.
-  return () => clearTimeout(saveTimer);
+  return () => {
+    torndown = true;
+    clearTimeout(saveTimer);
+    document.removeEventListener('keydown', handleShortcut);
+  };
 }
