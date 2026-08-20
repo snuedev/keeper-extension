@@ -14,6 +14,9 @@
   --accent: light-dark(#b12a4b, #ff9cb5);
   --accent-ink: light-dark(#ffffff, #2a1018);
   --accent-soft: light-dark(#ffe3ea, #3a2029);
+  --new-note: light-dark(#ffc5d3, #ff9cb5);
+  --new-note-line: light-dark(#f4a3b8, #ff9cb5);
+  --new-note-ink: light-dark(#241c1f, #2a1018);
   --danger: light-dark(#8c1c34, #ff9e9e);
   --danger-ink: light-dark(#ffffff, #2a1018);
   --ring: light-dark(rgba(177, 42, 75, 0.35), rgba(255, 156, 181, 0.4));
@@ -240,6 +243,16 @@ body.in-tab {
   filter: brightness(1.08);
 }
 
+.button--new-note {
+  border-color: var(--new-note-line);
+  background-color: var(--new-note);
+  color: var(--new-note-ink);
+}
+
+.button--new-note:hover:not(:disabled) {
+  border-color: var(--new-note-line);
+}
+
 .button--google {
   display: flex;
   align-items: center;
@@ -400,8 +413,6 @@ body.in-tab {
   margin-top: 4px;
   color: var(--muted);
   font-size: 11px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .notes__empty {
