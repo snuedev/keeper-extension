@@ -1,6 +1,7 @@
 import {
   describeAuthError,
   isCancelledSignIn,
+  sendPasswordReset,
   signIn,
   signInWithGoogle,
   signUp,
@@ -58,6 +59,10 @@ export function renderAuthView(container) {
             autocomplete="current-password"
           />
         </label>
+
+        <button class="link-button" type="button" data-action="forgot-password">
+          Forgot password?
+        </button>
 
         <p class="form__error" role="alert" hidden></p>
 
@@ -129,6 +134,12 @@ export function renderAuthView(container) {
 
   form.addEventListener('input', clearError);
 
+  form
+    .querySelector('[data-action="forgot-password"]')
+    .addEventListener('click', () =>
+      renderResetView(container, emailInput.value.trim()),
+    );
+
   googleButton.addEventListener('click', async () => {
     clearError();
     setBusy(true);
@@ -145,6 +156,102 @@ export function renderAuthView(container) {
       setBusy(false);
     }
   });
+
+  emailInput.focus();
+}
+
+function renderResetView(container, email) {
+  container.innerHTML = `
+    <header class="header header--row">
+      <h1 class="header__title">Keeper</h1>
+      <div class="header__actions">${themeToggleMarkup}</div>
+    </header>
+    <main class="panel">
+      <p class="panel__message">Reset your password</p>
+      <p class="panel__hint">
+        Enter the email you signed up with and we will send you a link to choose
+        a new password.
+      </p>
+
+      <form class="form" novalidate>
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input
+            class="field__input"
+            type="email"
+            name="email"
+            autocomplete="username"
+          />
+        </label>
+
+        <p class="form__error" role="alert" hidden></p>
+        <p class="form__notice" role="status" hidden></p>
+
+        <div class="form__actions">
+          <button class="button button--primary" type="submit">
+            Send reset link
+          </button>
+          <button class="button" type="button" data-action="back">
+            Back to sign in
+          </button>
+        </div>
+      </form>
+    </main>
+  `;
+
+  wireThemeToggle(container);
+
+  const form = container.querySelector('.form');
+  const emailInput = form.querySelector('input[name="email"]');
+  const errorText = form.querySelector('.form__error');
+  const noticeText = form.querySelector('.form__notice');
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  emailInput.value = email;
+
+  function showOnly(element, message) {
+    errorText.hidden = true;
+    noticeText.hidden = true;
+    element.textContent = message;
+    element.hidden = false;
+  }
+
+  function clearMessages() {
+    errorText.hidden = true;
+    noticeText.hidden = true;
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearMessages();
+
+    const address = emailInput.value.trim();
+    if (!address) {
+      showOnly(errorText, 'Enter your email address.');
+      return;
+    }
+
+    submitButton.disabled = true;
+    try {
+      await sendPasswordReset(address);
+      // Firebase's email-enumeration protection resolves this for addresses
+      // with no account too, so the wording cannot promise an email arrives.
+      showOnly(
+        noticeText,
+        `If ${address} has a Keeper password, a reset link is on its way. Check your inbox and spam folder.`,
+      );
+    } catch (error) {
+      showOnly(errorText, describeAuthError(error));
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
+  form.addEventListener('input', clearMessages);
+
+  form
+    .querySelector('[data-action="back"]')
+    .addEventListener('click', () => renderAuthView(container));
 
   emailInput.focus();
 }
