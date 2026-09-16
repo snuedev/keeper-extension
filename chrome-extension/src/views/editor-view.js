@@ -10,16 +10,7 @@ export function renderEditorView(container, user, note, { onBack }) {
       <button class="button button--quiet" type="button" data-action="back">
         ← All notes
       </button>
-      <div class="header__actions">
-        ${themeToggleMarkup}
-        <button
-          class="button button--quiet button--danger"
-          type="button"
-          data-action="delete"
-        >
-          Delete
-        </button>
-      </div>
+      <div class="header__actions">${themeToggleMarkup}</div>
     </header>
     <main class="panel panel--editor">
       <input
@@ -42,7 +33,7 @@ export function renderEditorView(container, user, note, { onBack }) {
         be markup inside the page.
       -->
       <div class="confirm" hidden>
-        <p class="confirm__text">Delete this note? There is no undo.</p>
+        <p class="confirm__text">Delete this note? This action cannot be undone.</p>
         <div class="form__actions">
           <button class="button" type="button" data-action="cancel-delete">
             Keep it
@@ -57,8 +48,15 @@ export function renderEditorView(container, user, note, { onBack }) {
         </div>
       </div>
     </main>
-    <footer class="footer">
+    <footer class="footer footer--row">
       <span class="footer__status" role="status"></span>
+      <button
+        class="button button--quiet button--danger"
+        type="button"
+        data-action="delete"
+      >
+        Delete
+      </button>
     </footer>
   `;
 

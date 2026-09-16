@@ -403,12 +403,16 @@ body.in-tab {
   list-style: none;
 }
 
+.note-item {
+  position: relative;
+}
+
 .note {
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: 100%;
-  padding: 11px 13px;
+  padding: 11px 44px 11px 13px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background-color: var(--surface);
@@ -453,6 +457,17 @@ body.in-tab {
   margin-top: 4px;
   color: var(--muted);
   font-size: 11px;
+}
+
+.note__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.note__delete:hover:not(:disabled) {
+  background-color: var(--accent-soft);
+  color: var(--danger);
 }
 
 .notes__empty {
