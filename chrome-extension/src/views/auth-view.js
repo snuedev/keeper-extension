@@ -1,11 +1,19 @@
 import {
   describeAuthError,
+  isAccountTakenBySignUp,
   isCancelledSignIn,
+  needsGoogleLink,
   sendPasswordReset,
   signIn,
+  signInAddingGoogle,
   signInWithGoogle,
+  signInWithGoogleAddingPassword,
   signUp,
 } from '../lib/auth.js';
+import {
+  clearPendingGoogleLink,
+  readPendingGoogleLink,
+} from '../lib/pending-link.js';
 import { themeToggleMarkup, wireThemeToggle } from '../lib/theme.js';
 
 // Google's brand guidelines require their own mark on the button, and an
@@ -66,6 +74,16 @@ export function renderAuthView(container) {
 
         <p class="form__error" role="alert" hidden></p>
 
+        <button
+          class="button button--google"
+          type="button"
+          data-action="google-add-password"
+          hidden
+        >
+          ${GOOGLE_MARK}
+          Continue with Google and add this password
+        </button>
+
         <div class="form__actions">
           <button class="button button--primary" type="submit">Sign in</button>
           <button class="button" type="button" data-action="sign-up">
@@ -84,6 +102,9 @@ export function renderAuthView(container) {
   const emailInput = form.querySelector('input[name="email"]');
   const passwordInput = form.querySelector('input[name="password"]');
   const errorText = form.querySelector('.form__error');
+  const addPasswordButton = form.querySelector(
+    '[data-action="google-add-password"]',
+  );
   const buttons = form.querySelectorAll('button');
 
   function showError(message) {
@@ -94,6 +115,15 @@ export function renderAuthView(container) {
   function clearError() {
     errorText.textContent = '';
     errorText.hidden = true;
+    addPasswordButton.hidden = true;
+  }
+
+  async function openLinkViewIfPending() {
+    const pending = await readPendingGoogleLink();
+    if (pending) {
+      renderLinkView(container, pending);
+    }
+    return Boolean(pending);
   }
 
   function setBusy(isBusy) {
@@ -118,8 +148,17 @@ export function renderAuthView(container) {
     try {
       await attempt(email, password);
     } catch (error) {
-      showError(describeAuthError(error));
       setBusy(false);
+
+      if (attempt === signUp && isAccountTakenBySignUp(error)) {
+        showError(
+          'An account already exists for that email. If you made it with Google, continue with Google to add this password to it.',
+        );
+        addPasswordButton.hidden = false;
+        return;
+      }
+
+      showError(describeAuthError(error));
     }
   }
 
@@ -134,30 +173,145 @@ export function renderAuthView(container) {
 
   form.addEventListener('input', clearError);
 
+  addPasswordButton.addEventListener('click', () =>
+    runGoogleFlow(() =>
+      signInWithGoogleAddingPassword(
+        emailInput.value.trim(),
+        passwordInput.value,
+      ),
+    ),
+  );
+
   form
     .querySelector('[data-action="forgot-password"]')
     .addEventListener('click', () =>
       renderResetView(container, emailInput.value.trim()),
     );
 
-  googleButton.addEventListener('click', async () => {
+  async function runGoogleFlow(flow) {
     clearError();
     setBusy(true);
 
     try {
-      await signInWithGoogle();
+      await flow();
     } catch (error) {
       // Chrome closes this popup as soon as the consent window opens, so on the
       // usual path nothing below ever runs. It matters when Keeper is open in a
       // tab, which survives the flow.
+      if (needsGoogleLink(error) && (await openLinkViewIfPending())) {
+        return;
+      }
       if (!isCancelledSignIn(error)) {
         showError(describeAuthError(error));
       }
       setBusy(false);
     }
-  });
+  }
+
+  googleButton.addEventListener('click', () => runGoogleFlow(signInWithGoogle));
 
   emailInput.focus();
+
+  // The popup that started a Google sign-in is usually closed by the time the
+  // worker learns the email needs linking, so the next popup picks it up here.
+  openLinkViewIfPending().catch(() => {});
+}
+
+function renderLinkView(container, pending) {
+  container.innerHTML = `
+    <header class="header header--row">
+      <h1 class="header__title">Keeper</h1>
+      <div class="header__actions">${themeToggleMarkup}</div>
+    </header>
+    <main class="panel">
+      <p class="panel__message">You already have a Keeper account</p>
+      <p class="panel__hint"></p>
+
+      <form class="form" novalidate>
+        <input type="email" name="email" autocomplete="username" hidden />
+
+        <label class="field">
+          <span class="field__label">Password</span>
+          <input
+            class="field__input"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+          />
+        </label>
+
+        <button class="link-button" type="button" data-action="forgot-password">
+          Forgot password?
+        </button>
+
+        <p class="form__error" role="alert" hidden></p>
+
+        <div class="form__actions">
+          <button class="button button--primary" type="submit">
+            Sign in and add Google
+          </button>
+          <button class="button" type="button" data-action="cancel">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </main>
+  `;
+
+  wireThemeToggle(container);
+
+  container.querySelector('.panel__hint').textContent =
+    `${pending.email} already signs in with a password. Enter it once to add Google to the same account, and after that either way works.`;
+
+  const form = container.querySelector('.form');
+  const passwordInput = form.querySelector('input[name="password"]');
+  const errorText = form.querySelector('.form__error');
+  const buttons = form.querySelectorAll('button');
+
+  form.querySelector('input[name="email"]').value = pending.email;
+
+  function setBusy(isBusy) {
+    buttons.forEach((button) => {
+      button.disabled = isBusy;
+    });
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    errorText.hidden = true;
+
+    if (!passwordInput.value) {
+      errorText.textContent = 'Enter your password.';
+      errorText.hidden = false;
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await signInAddingGoogle(pending, passwordInput.value);
+    } catch (error) {
+      errorText.textContent = describeAuthError(error);
+      errorText.hidden = false;
+      setBusy(false);
+    }
+  });
+
+  form.addEventListener('input', () => {
+    errorText.hidden = true;
+  });
+
+  form
+    .querySelector('[data-action="forgot-password"]')
+    .addEventListener('click', () => renderResetView(container, pending.email));
+
+  form
+    .querySelector('[data-action="cancel"]')
+    .addEventListener('click', async () => {
+      await clearPendingGoogleLink();
+      renderAuthView(container);
+    });
+
+  passwordInput.focus();
 }
 
 function renderResetView(container, email) {

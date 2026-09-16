@@ -1,13 +1,21 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  linkWithCredential,
   onAuthStateChanged,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
 
 import { auth } from './firebase.js';
-import { DELETE_ACCOUNT_WITH_GOOGLE, SIGN_IN_WITH_GOOGLE } from './messages.js';
+import {
+  DELETE_ACCOUNT_WITH_GOOGLE,
+  SIGN_IN_WITH_GOOGLE,
+  SIGN_IN_WITH_GOOGLE_ADDING_PASSWORD,
+} from './messages.js';
+import { clearPendingGoogleLink } from './pending-link.js';
 
 function keeperError(code) {
   const error = new Error(code);
@@ -15,8 +23,12 @@ function keeperError(code) {
   return error;
 }
 
-export function signUp(email, password) {
-  return createUserWithEmailAndPassword(auth, email, password);
+// Firebase trusts Google to vouch for Gmail addresses. If a Gmail user later
+// signs in with Google, Firebase merges the accounts on its own, but it deletes
+// the password when the address was never verified. Verifying keeps both.
+export async function signUp(email, password) {
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  sendEmailVerification(user).catch(() => {});
 }
 
 export function signIn(email, password) {
@@ -31,12 +43,12 @@ export function sendPasswordReset(email) {
 // takes focus, and a popup that loses focus is torn down along with any promise
 // it is waiting on. onAuthChange then reports the result through the auth
 // database both contexts share.
-async function runInWorker(type) {
+async function runInWorker(type, payload = {}) {
   if (!globalThis.chrome?.runtime?.sendMessage) {
     throw keeperError('keeper/google-unavailable');
   }
 
-  const reply = await chrome.runtime.sendMessage({ type });
+  const reply = await chrome.runtime.sendMessage({ ...payload, type });
 
   // Chrome resolves with nothing when no listener answers, which happens when
   // the worker still running is a build from before this message existed.
@@ -53,6 +65,31 @@ async function runInWorker(type) {
 
 export function signInWithGoogle() {
   return runInWorker(SIGN_IN_WITH_GOOGLE);
+}
+
+export function signInWithGoogleAddingPassword(email, password) {
+  return runInWorker(SIGN_IN_WITH_GOOGLE_ADDING_PASSWORD, { email, password });
+}
+
+// Signing in fires the auth listener, which swaps this view for the notes list
+// before the link below finishes, so a failed link can only be logged.
+export async function signInAddingGoogle(pending, password) {
+  const { user } = await signInWithEmailAndPassword(auth, pending.email, password);
+  await clearPendingGoogleLink();
+
+  const credential = GoogleAuthProvider.credential(
+    pending.idToken,
+    pending.accessToken,
+  );
+  linkWithCredential(user, credential).catch((error) => console.error(error));
+}
+
+export function isAccountTakenBySignUp(error) {
+  return error?.code === 'auth/email-already-in-use';
+}
+
+export function needsGoogleLink(error) {
+  return error?.code === 'auth/account-exists-with-different-credential';
 }
 
 export function deleteAccountWithGoogle() {
@@ -92,6 +129,10 @@ const MESSAGES = {
   'keeper/google-no-token': 'Google did not return a sign-in. Try again.',
   'auth/user-mismatch':
     'That Google account is not the one signed in to Keeper. Pick the same account.',
+  'auth/credential-already-in-use':
+    'That Google account already belongs to a different Keeper account.',
+  'keeper/google-email-mismatch':
+    'Pick the Google account that uses the email you entered.',
   'auth/requires-recent-login': 'Keeper needs to confirm it is you. Try again.',
   'keeper/worker-outdated':
     'Keeper was just updated. Reload it from chrome://extensions and try again.',
