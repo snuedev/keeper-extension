@@ -1,11 +1,17 @@
 import {
   DELETE_ACCOUNT_WITH_GOOGLE,
   SIGN_IN_WITH_GOOGLE,
+  SIGN_IN_WITH_GOOGLE_ADDING_PASSWORD,
 } from './lib/messages.js';
-import { runGoogleAccountDeletion, runGoogleSignIn } from './lib/google.js';
+import {
+  runGoogleAccountDeletion,
+  runGoogleSignIn,
+  runGoogleSignInAddingPassword,
+} from './lib/google.js';
 
 const HANDLERS = {
   [SIGN_IN_WITH_GOOGLE]: runGoogleSignIn,
+  [SIGN_IN_WITH_GOOGLE_ADDING_PASSWORD]: runGoogleSignInAddingPassword,
   [DELETE_ACCOUNT_WITH_GOOGLE]: runGoogleAccountDeletion,
 };
 
@@ -16,7 +22,7 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
   const handler = HANDLERS[message?.type];
   if (!handler) return false;
 
-  handler().then(
+  handler(message).then(
     () => respond({ ok: true }),
     (error) => {
       console.error(error);

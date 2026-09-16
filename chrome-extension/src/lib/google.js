@@ -1,11 +1,14 @@
 import {
+  EmailAuthProvider,
   GoogleAuthProvider,
+  linkWithCredential,
   reauthenticateWithCredential,
   signInWithCredential,
 } from 'firebase/auth';
 
 import { eraseAccount } from './account.js';
 import { auth } from './firebase.js';
+import { savePendingGoogleLink } from './pending-link.js';
 
 const CLIENT_ID =
   '222138233823-0bsdkkdldobgr8ecsu2td3acdhunrcso.apps.googleusercontent.com';
@@ -74,8 +77,54 @@ async function requestGoogleCredential(loginHint) {
   return GoogleAuthProvider.credential(idToken, returned.get('access_token'));
 }
 
+function emailFromIdToken(idToken) {
+  const payload = idToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(payload)).email ?? '';
+}
+
+function sameEmail(a, b) {
+  return a.toLowerCase() === b.toLowerCase();
+}
+
+// When the email already belongs to a password account, Firebase refuses to
+// open a second account for it. The Google credential is kept so the popup
+// can ask for that password and attach Google to the existing account.
+async function signInWithGoogleCredential(credential) {
+  try {
+    return await signInWithCredential(auth, credential);
+  } catch (error) {
+    if (error?.code === 'auth/account-exists-with-different-credential') {
+      await savePendingGoogleLink({
+        email: emailFromIdToken(credential.idToken),
+        idToken: credential.idToken,
+        accessToken: credential.accessToken,
+      });
+    }
+    throw error;
+  }
+}
+
 export async function runGoogleSignIn() {
-  return signInWithCredential(auth, await requestGoogleCredential());
+  return signInWithGoogleCredential(await requestGoogleCredential());
+}
+
+export async function runGoogleSignInAddingPassword({ email, password }) {
+  const credential = await requestGoogleCredential(email);
+
+  if (!sameEmail(emailFromIdToken(credential.idToken), email)) {
+    throw keeperError('keeper/google-email-mismatch');
+  }
+
+  const { user } = await signInWithGoogleCredential(credential);
+
+  try {
+    await linkWithCredential(user, EmailAuthProvider.credential(email, password));
+  } catch (error) {
+    // The account already had a password; signing in with Google was enough.
+    if (error?.code !== 'auth/provider-already-linked') {
+      throw error;
+    }
+  }
 }
 
 export async function runGoogleAccountDeletion() {
