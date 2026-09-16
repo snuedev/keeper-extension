@@ -23,7 +23,7 @@ export function renderListView(container, user, { onOpenNote }) {
       </div>
     </header>
     <main class="panel panel--list">
-      <button class="button button--primary" type="button" data-action="new-note">
+      <button class="button button--primary button--new-note" type="button" data-action="new-note">
         New note
       </button>
 
