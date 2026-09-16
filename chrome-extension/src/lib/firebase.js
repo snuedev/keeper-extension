@@ -29,7 +29,7 @@ if (missing.length > 0) {
   );
 }
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // Named rather than left to getAuth's own guess, because the service worker
 // and the popup only see the same session if they agree on where it is kept,
