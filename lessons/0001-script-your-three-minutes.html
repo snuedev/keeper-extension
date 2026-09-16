@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 — Script your three minutes</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main class="sheet">
+
+<p class="eyebrow">Lesson 1 · CS50 screencast</p>
+<h1>Script your three minutes</h1>
+<p class="lede">Before you install a single recording tool, you write the words. By
+the end of this page you will have a finished, timed script for Keeper — and you
+will know it fits, because you counted.</p>
+
+<h2>Why the script comes first</h2>
+
+<p>The instinct is to open a recorder and start talking. Almost everyone who does
+that records the same video six times, each take a bit worse than the last, and
+ends up at 4:20 with no idea what to cut.</p>
+
+<p>The reason is that three minutes is short. Not "be brief" short — genuinely
+constrained. The specification is a ceiling, not a target:</p>
+
+<blockquote>"Create a short video (that's no more than 3 minutes in length) in which
+you present your project to the world."<br>
+— <a href="https://cs50.harvard.edu/x/project/">CS50x Final Project</a></blockquote>
+
+<p>A script turns that ceiling into something you can check <em>before</em> you have
+wasted an evening. Here is the conversion that makes it possible: comfortable
+speech runs at roughly <strong>150 words per minute</strong>. So three minutes is
+about <strong>450 words</strong>, and a sensible script — leaving room to slow down,
+and for a title card that costs time without spending words — is about
+<strong>375 words</strong>, which is a page and a half.</p>
+
+<div class="callout">
+  <p><strong>The one number to remember.</strong> 150 words per minute. It is the
+  only arithmetic in this lesson, and it converts an abstract limit into something
+  you can count in a text box. You will use it for every talk you ever give.</p>
+</div>
+
+<h2>A shape that reliably fits</h2>
+
+<p>You do not have to invent a structure. This one fits inside three minutes with
+room to breathe, and it puts the two things a grader is looking for — that it
+works, and that you understood what you built — in the places they will actually
+be watched.</p>
+
+<table class="beat-table">
+  <thead><tr><th>Beat</th><th>What it does</th><th>Words</th></tr></thead>
+  <tbody>
+    <tr><td>Title</td><td>A still card with the six required facts. Costs seconds, not words.</td><td>~20</td></tr>
+    <tr><td>Problem</td><td>What was annoying, and the one sentence naming what you built.</td><td>~45</td></tr>
+    <tr><td>Demo</td><td>Keeper running. The longest beat, and the one that earns the grade.</td><td>~220</td></tr>
+    <tr><td>Decision</td><td>One hard thing and how you solved it.</td><td>~70</td></tr>
+    <tr><td>Close</td><td>Thanks, and where the code lives.</td><td>~20</td></tr>
+  </tbody>
+</table>
+
+<p>The demo beat is deliberately more than half the script. The commonest failure in
+a student project video is spending two minutes describing an architecture and
+thirty seconds showing the software. Grading is on the project, and the video is the
+only way the grader sees it working.</p>
+
+<div class="callout callout--good">
+  <p><strong>Show, don't describe.</strong> "Notes save automatically" is a claim.
+  Typing a word, pausing, and letting the footer change to <em>Saved</em> on camera
+  is a demonstration. Wherever your script explains a feature, ask whether the screen
+  could just show it instead — and cut the sentence if it can.</p>
+</div>
+
+<h2>Your title card</h2>
+
+<p>This beat is not creative work, it is a compliance checklist, and it is the
+easiest thing in the whole submission to get wrong. The specification requires the
+opening to display:</p>
+
+<blockquote>"your project's title; your name; your GitHub and edX usernames; your
+city and country; and, the date you have recorded this video."</blockquote>
+
+<p>Six facts. Fill them in now, while you are thinking about it — two of them you
+will have to go and look up, and you do not want to be doing that at 11pm with a
+recorder running.</p>
+
+<div class="widget">
+  <p class="widget__title">Exercise 1 — your title card</p>
+  <ul class="checklist">
+    <li><input type="checkbox" id="t1"><label for="t1"><strong>Title:</strong> Keeper — a private place for notes, from anywhere in the browser</label></li>
+    <li><input type="checkbox" id="t2"><label for="t2"><strong>Your name</strong> as it appears on your edX account</label></li>
+    <li><input type="checkbox" id="t3"><label for="t3"><strong>GitHub username</strong> — <code>snuedev</code>, judging by your remote</label></li>
+    <li><input type="checkbox" id="t4"><label for="t4"><strong>edX username</strong> — look it up, it is often <em>not</em> the same as your GitHub one</label></li>
+    <li><input type="checkbox" id="t5"><label for="t5"><strong>City and country</strong></label></li>
+    <li><input type="checkbox" id="t6"><label for="t6"><strong>Date of recording</strong> — the day you press record, not today</label></li>
+  </ul>
+</div>
+
+<h2>Write the script</h2>
+
+<p>Below is a skeleton with the beats marked and prompts where your words go. Replace
+the bracketed prompts with real sentences, out loud as you write — if a line is hard
+to say, it is the wrong line. The meter underneath counts as you type and tells you
+whether you still fit.</p>
+
+<p>You have an advantage most students do not: your
+<a href="../README.md">README</a> already explains the reasoning behind every design
+choice in the project. The draft-rescue paragraph in particular is a ready-made
+"Decision" beat — a Chrome popup is destroyed the moment it loses focus, and you
+built around that. Do not invent new explanations; steal your own.</p>
+
+<div class="widget" data-script-timer data-budget-seconds="165" data-storage-key="keeper-script-v1">
+  <p class="widget__title">Exercise 2 — draft, and watch the clock</p>
+  <textarea class="script-box" spellcheck="true">[PROBLEM — about 45 words]
+I kept losing small notes... (what was the actual annoyance? one honest sentence)
+So I built Keeper, a Chrome extension that... (one sentence, no jargon)
+
+[DEMO — about 220 words, and mostly silence while things happen]
+Here it is in the toolbar. I click the icon and...
+(sign in — say what you are doing, not what the code does)
+(the list — say what a card shows you)
+(new note — type something real, then STOP and let the footer say Saved)
+(search — filter to the note you just made)
+(theme toggle — one click, one sentence)
+
+[DECISION — about 70 words]
+The hardest part was... (the popup being destroyed when it loses focus)
+So Keeper... (what you did about it — and show it happening if you can)
+
+[CLOSE — about 20 words]
+That's Keeper. The code is on GitHub at... Thanks for watching.</textarea>
+  <div class="meter">
+    <div class="meter__bar"><div class="meter__fill" data-meter-fill></div></div>
+    <div class="meter__read">
+      <span data-meter-clock></span>
+      <span class="meter__verdict" data-meter-verdict></span>
+    </div>
+  </div>
+</div>
+
+<div class="callout callout--warn">
+  <p><strong>Why the meter stops at 2:45, not 3:00.</strong> Two reasons. The title
+  card burns ten to fifteen seconds of runtime without using any of your words. And
+  everyone reads faster in their chair than they speak on camera. A script that
+  measures 3:00 flat becomes a video that is over the limit.</p>
+</div>
+
+<h2>Check it stuck</h2>
+
+<p>Three questions, closed book. Getting one wrong is more useful than getting all
+three right — it shows you exactly which bit did not land.</p>
+
+<div class="widget" data-quiz>
+  <p class="quiz__q">Your script times at 2:55 and the limit is 3:00. Which beat do you cut?</p>
+  <div class="quiz__opts">
+    <button class="quiz__opt" data-correct="true" data-feedback="Right. Architecture talk is the first thing to go — it is the beat that competes with the demo, and the README covers it in far more detail than a video ever could. Trim explanation, protect the part where the software is visibly working.">Trim the segment about database design</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="This is the one beat to protect. The demo is how a grader sees that the project exists and runs; cutting it to make room for explanation is exactly backwards. Cut the database-design segment instead.">Trim the segment showing notes saving</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="You cannot. The opening card is a hard requirement — title, name, GitHub and edX usernames, city, country, date. Cutting it risks the submission rather than the runtime. Cut the database-design segment instead.">Trim the opening title card facts</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="It would work, but it buys you about eight seconds and costs you an ending. The bigger and safer saving is the database-design segment, which competes with the demo for attention.">Trim the closing thanks and credits</button>
+  </div>
+  <p class="quiz__fb" data-quiz-feedback hidden></p>
+</div>
+
+<div class="widget" data-quiz>
+  <p class="quiz__q">Roughly how many spoken words fit into a 2:30 script?</p>
+  <div class="quiz__opts">
+    <button class="quiz__opt" data-correct="false" data-feedback="That is about 1:40 of speech — you would finish early with time unused. At 150 words per minute, 2:30 is about 375 words.">About two hundred and fifty words</button>
+    <button class="quiz__opt" data-correct="true" data-feedback="Correct. 150 words per minute times two and a half minutes is 375. That single conversion is the whole trick: it lets you check the length of a video you have not recorded yet.">About three hundred seventy five words</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="That is nearer three and a half minutes — already over the ceiling. At 150 words per minute, 2:30 is about 375 words.">About five hundred and twenty words</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="That is closer to four and a half minutes of speech, well past the limit. At 150 words per minute, 2:30 is about 375 words.">About six hundred and eighty words</button>
+  </div>
+  <p class="quiz__fb" data-quiz-feedback hidden></p>
+</div>
+
+<div class="widget" data-quiz>
+  <p class="quiz__q">Which YouTube visibility setting does the specification forbid?</p>
+  <div class="quiz__opts">
+    <button class="quiz__opt" data-correct="true" data-feedback="Right — the spec says &quot;don't flag it as 'private'&quot;. A private video cannot be opened by whoever grades it, so the submission fails for a reason that has nothing to do with your code. Unlisted is the safe default.">Private, so only you can watch</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="Unlisted is explicitly allowed and is the usual choice: anyone with the link can watch, but it does not show up in search. The forbidden one is private.">Unlisted, so link holders can watch</button>
+    <button class="quiz__opt" data-correct="false" data-feedback="Public is allowed too — plenty of students leave their project video up deliberately. The forbidden one is private.">Public, so search engines can find</button>
+  </div>
+  <p class="quiz__fb" data-quiz-feedback hidden></p>
+</div>
+
+<h2>Before the next lesson</h2>
+
+<p><strong>Read the primary source.</strong> Read
+<a href="https://cs50.harvard.edu/x/project/">the CS50x final project page</a> in full,
+yourself, start to finish. It takes four minutes. Every claim on this page is drawn
+from it, and it is the only document that decides whether your submission passes — a
+course page can be updated, and a lesson cannot update itself. If something here ever
+disagrees with it, the specification wins.</p>
+
+<p><strong>Finish your script</strong> in the box above until the meter reads green,
+then read it aloud once with a stopwatch. The number you get by speaking it is the
+real one; the meter is only an estimate.</p>
+
+<p><strong>Next lesson</strong> covers the recording itself: OBS Studio on Windows
+(the recorder has to be a Windows program — WSL has no screen of its own to capture),
+choosing what fills the frame, and getting a usable take without editing software.</p>
+
+<div class="callout">
+  <p><strong>Ask me things.</strong> I am your teacher for this, not just the person
+  who wrote the page. If a beat will not come out right, if you are unsure whether
+  something counts as a design decision worth explaining, or if you want me to read
+  your draft script and tell you what to cut — just ask in the chat. Bring me the
+  script when it is done.</p>
+</div>
+
+<div class="footer-nav">
+  <a href="../reference/cs50-video-checklist.html">Reference — CS50x video checklist</a>
+  <a href="../MISSION.md">Mission</a>
+  <a href="../RESOURCES.md">Resources</a>
+</div>
+
+</main>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/script-timer.js"></script>
+<script src="../assets/checklist.js"></script>
+</body>
+</html>
