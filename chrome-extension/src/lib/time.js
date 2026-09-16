@@ -17,6 +17,10 @@ const dateWithYear = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
 });
 
+function capitalize(text) {
+  return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+}
+
 export function relativeTime(millis, now = Date.now()) {
   if (millis == null || !Number.isFinite(millis)) return 'Just now';
 
@@ -35,7 +39,7 @@ export function relativeTime(millis, now = Date.now()) {
   }
 
   if (elapsed < WEEK) {
-    return relative.format(-Math.floor(elapsed / DAY), 'day');
+    return capitalize(relative.format(-Math.floor(elapsed / DAY), 'day'));
   }
 
   const then = new Date(millis);
