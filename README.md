@@ -13,10 +13,15 @@ What is left is the store listing.
 Click the heart icon and one of three panels appears.
 
 **If you are not signed in,** you get the sign-in panel: Continue with Google, or
-an email and password to sign in with or create an account. The session is kept
-by Firebase in the extension's own storage, so it survives closing the popup,
-closing Chrome, and restarting the machine. You stay signed in until you sign
-out.
+an email and password to sign in with or create an account. "Forgot password?"
+under the password field opens a reset screen that sends Firebase's password
+reset email, carrying over the address if you had already typed one. Its
+confirmation does not promise an email went out, because it cannot know: with
+email enumeration protection on, Firebase answers the same way whether or not
+the address has an account, and an account that only ever used Google has no
+password to reset. The session is kept by Firebase in the extension's own
+storage, so it survives closing the popup, closing Chrome, and restarting the
+machine. You stay signed in until you sign out.
 
 **Once you are signed in,** you land on your notes, newest first. Each card shows
 the title, the first non-empty line of the body, and when it was last touched
@@ -154,7 +159,7 @@ click the reload arrow.
 
 | File | What it does |
 | --- | --- |
-| `src/views/auth-view.js` | The sign-in panel: the Google button (with Google's mark inlined as SVG, because the extension's content rules forbid loading it from their servers), email and password fields, "Sign in" and "Create account", and one place errors appear. |
+| `src/views/auth-view.js` | The sign-in panel: the Google button (with Google's mark inlined as SVG, because the extension's content rules forbid loading it from their servers), email and password fields, "Sign in" and "Create account", the "Forgot password?" link and the reset screen behind it, and one place errors appear. |
 | `src/views/list-view.js` | Your notes. Subscribes to Firestore for live updates, builds each card, filters on the search box, refreshes the relative times on a timer so "just now" does not sit there for an hour, and handles New note, Sign out, and Open in tab. Cards are built with `createElement` and `textContent` rather than by pasting strings into HTML, so a note titled `<img onerror=…>` is a note about HTML, not a script. |
 | `src/views/editor-view.js` | The note itself. Owns the debounced autosave, the status line, the delete confirmation, the Ctrl/Cmd+S shortcut, and restoring a rescued draft. |
 
@@ -163,7 +168,7 @@ click the reload arrow.
 | File | What it does |
 | --- | --- |
 | `src/lib/firebase.js` | Starts Firebase up and reads the project values out of `.env` and hands out the two things everything else needs: `auth` and `db`. If a value is missing it stops there with a message naming the variable, rather than letting the extension fail later with a confusing auth error. It pins session storage to IndexedDB rather than letting Firebase choose, because the popup and the service worker only see the same sign-in if they agree on where it is kept — and a service worker has no `localStorage` to fall back on. |
-| `src/lib/auth.js` | Sign up, sign in, sign in with Google, sign out, and "tell me when the signed-in user changes". Also `describeAuthError`, which turns Firebase's error codes into sentences a person can act on. |
+| `src/lib/auth.js` | Sign up, sign in, sign in with Google, send a password reset email, sign out, and "tell me when the signed-in user changes". Also `describeAuthError`, which turns Firebase's error codes into sentences a person can act on. |
 | `src/lib/google.js` | The Google sign-in flow itself: build the consent URL, open it through Chrome's identity API, pull the token out of the URL Google redirects back to, and hand it to Firebase. Runs in the service worker. |
 | `src/lib/messages.js` | One constant — the name of the message the popup sends the worker to start that flow. It is its own file so neither side can drift from the other by a typo. |
 | `src/lib/notes.js` | Everything Firestore: watch the list live, create, update, delete, and `describeNotesError` for the same reason `auth.js` has one. Notes are stored at `users/{uid}/notes/{noteId}`, so the path itself contains the owner and no query can accidentally reach across accounts. |
