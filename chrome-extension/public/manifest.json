@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Keeper",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl1fvsl0GH2dtKLLzgcOpJrqxm1zUopJFlNEZ3LC4ccPZTbcdaoIOnCtZtfIinnQeky4xOksXofsaizEYpevSCZxEwgT2MA+82hXgr45PK8qFWlQfHLeElf5RdCPoOxv+Laa1qgDZS8j2+SB4E2urk8xW6TKdUdeqOuwwrY2Q8LeypG03asY8xKoMdOWpA73ZWc1LJ4d8SH09Gc1lw59FAu75kTEG6zHS2AKDULVhDShGYueMTnSDJtyv9ZwnGe/iUzvf+WZLu/3EANSVojMInmI5rfTstJOfhNGZdVJllQXz6m7AWb2DfosGT3H2zCJmzTcq3XxhnFBEt94fFEOeWwIDAQAB",
   "description": "A private place to keep your notes, from anywhere in the browser.",
   "version": "1.0.0",
   "icons": {
