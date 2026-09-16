@@ -5,6 +5,7 @@ import { loadTheme } from './lib/theme.js';
 import { renderAuthView } from './views/auth-view.js';
 import { renderEditorView } from './views/editor-view.js';
 import { renderListView } from './views/list-view.js';
+import { renderSettingsView } from './views/settings-view.js';
 
 const app = document.querySelector('#app');
 
@@ -28,6 +29,15 @@ function showList(user) {
   show(() =>
     renderListView(app, user, {
       onOpenNote: (note) => showEditor(user, note),
+      onOpenSettings: () => showSettings(user),
+    }),
+  );
+}
+
+function showSettings(user) {
+  show(() =>
+    renderSettingsView(app, user, {
+      onBack: () => showList(user),
     }),
   );
 }

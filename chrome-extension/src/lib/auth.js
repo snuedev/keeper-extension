@@ -7,7 +7,7 @@ import {
 } from 'firebase/auth';
 
 import { auth } from './firebase.js';
-import { SIGN_IN_WITH_GOOGLE } from './messages.js';
+import { DELETE_ACCOUNT_WITH_GOOGLE, SIGN_IN_WITH_GOOGLE } from './messages.js';
 
 function keeperError(code) {
   const error = new Error(code);
@@ -27,24 +27,36 @@ export function sendPasswordReset(email) {
   return sendPasswordResetEmail(auth, email);
 }
 
-// Run in the service worker rather than here: the consent window takes focus,
-// and a popup that loses focus is torn down along with any promise it is
-// waiting on. onAuthChange then reports the result through the auth database
-// both contexts share.
-export async function signInWithGoogle() {
+// Google flows run in the service worker rather than here: the consent window
+// takes focus, and a popup that loses focus is torn down along with any promise
+// it is waiting on. onAuthChange then reports the result through the auth
+// database both contexts share.
+async function runInWorker(type) {
   if (!globalThis.chrome?.runtime?.sendMessage) {
     throw keeperError('keeper/google-unavailable');
   }
 
-  const reply = await chrome.runtime.sendMessage({
-    type: SIGN_IN_WITH_GOOGLE,
-  });
+  const reply = await chrome.runtime.sendMessage({ type });
 
-  if (!reply?.ok) {
+  // Chrome resolves with nothing when no listener answers, which happens when
+  // the worker still running is a build from before this message existed.
+  if (reply === undefined) {
+    throw keeperError('keeper/worker-outdated');
+  }
+
+  if (!reply.ok) {
     throw keeperError(reply?.code ?? 'keeper/google-no-token');
   }
 
   return reply;
+}
+
+export function signInWithGoogle() {
+  return runInWorker(SIGN_IN_WITH_GOOGLE);
+}
+
+export function deleteAccountWithGoogle() {
+  return runInWorker(DELETE_ACCOUNT_WITH_GOOGLE);
 }
 
 export function isCancelledSignIn(error) {
@@ -78,6 +90,12 @@ const MESSAGES = {
   'keeper/google-unavailable':
     'Google sign-in needs Keeper to be running as an installed extension.',
   'keeper/google-no-token': 'Google did not return a sign-in. Try again.',
+  'auth/user-mismatch':
+    'That Google account is not the one signed in to Keeper. Pick the same account.',
+  'auth/requires-recent-login': 'Keeper needs to confirm it is you. Try again.',
+  'keeper/worker-outdated':
+    'Keeper was just updated. Reload it from chrome://extensions and try again.',
+  'keeper/not-signed-in': 'You are no longer signed in. Sign in and try again.',
 };
 
 export function describeAuthError(error) {

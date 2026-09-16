@@ -1,4 +1,5 @@
 import { describeAuthError, signOutUser } from '../lib/auth.js';
+import { PROFILE_ICON } from '../lib/icons.js';
 import {
   createNote,
   describeNotesError,
@@ -11,12 +12,21 @@ import { relativeTime } from '../lib/time.js';
 
 const CLOCK_TICK_MS = 60 * 1000;
 
-export function renderListView(container, user, { onOpenNote }) {
+export function renderListView(container, user, { onOpenNote, onOpenSettings }) {
   container.innerHTML = `
     <header class="header header--row">
       <h1 class="header__title">Keeper</h1>
       <div class="header__actions">
         ${themeToggleMarkup}
+        <button
+          class="button button--quiet button--icon"
+          type="button"
+          data-action="settings"
+          title="Profile and settings"
+          aria-label="Profile and settings"
+        >
+          ${PROFILE_ICON}
+        </button>
         <button class="button button--quiet" type="button" data-action="sign-out">
           Sign out
         </button>
@@ -68,6 +78,7 @@ export function renderListView(container, user, { onOpenNote }) {
   const errorText = container.querySelector('.panel__error');
   const newNoteButton = container.querySelector('[data-action="new-note"]');
   const signOutButton = container.querySelector('[data-action="sign-out"]');
+  const settingsButton = container.querySelector('[data-action="settings"]');
   const openTabButton = container.querySelector('[data-action="open-tab"]');
 
   openTabButton.hidden = isTabView();
@@ -176,6 +187,8 @@ export function renderListView(container, user, { onOpenNote }) {
   });
 
   openTabButton.addEventListener('click', openInTab);
+
+  settingsButton.addEventListener('click', onOpenSettings);
 
   signOutButton.addEventListener('click', async () => {
     signOutButton.disabled = true;
