@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — CS50x Final Project Video Checklist</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main class="sheet">
+
+<p class="eyebrow">Reference card</p>
+<h1>CS50x final project video</h1>
+<p class="lede">Everything the specification actually requires, on one page. Check
+this against <a href="https://cs50.harvard.edu/x/project/">the source</a> before you
+record — a course page can change, this card cannot.</p>
+
+<h2>Hard requirements</h2>
+<table class="beat-table">
+  <thead><tr><th>Rule</th><th>The specification's words</th></tr></thead>
+  <tbody>
+    <tr><td>Length</td><td>“no more than 3 minutes in length”. Not a target — a ceiling.</td></tr>
+    <tr><td>Opening</td><td>Must display “your project's title; your name; your GitHub and edX usernames; your city and country; and, the date you have recorded this video.”</td></tr>
+    <tr><td>Body</td><td>“demonstrate your project in action, as with slides, screenshots, voiceover, and/or live action.”</td></tr>
+    <tr><td>Host</td><td>YouTube, or a similar service if YouTube is blocked where you are.</td></tr>
+    <tr><td>Visibility</td><td>Public or <em>unlisted</em>. “don't flag it as ‘private’” — a private video cannot be graded.</td></tr>
+    <tr><td>README</td><td>A file named exactly <code>README.md</code> containing the title, the video URL, and a detailed description. Around 750 words.</td></tr>
+    <tr><td>Submit</td><td>Fill in the video form, then run <code>submit50 cs50/problems/2026/x/project</code>, then check cs50.me/cs50x.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout--warn">
+  <p><strong>The and/or trap.</strong> CS50x says “slides, screenshots, voiceover,
+  and/or live action”, so a silent captioned video passes. Other CS50 courses differ:
+  the Cybersecurity course says you “minimally need to include a voiceover”, and the
+  on-campus College version adds “ideally with you yourself appearing”. Check the page
+  for <em>your</em> course, not a remembered rule from someone else's.</p>
+</div>
+
+<h2>The word budget</h2>
+<p>Comfortable speech is roughly 150 words per minute. That is the number that turns
+an abstract three-minute limit into something you can count on a page.</p>
+
+<table class="beat-table">
+  <thead><tr><th>Runtime</th><th>Spoken words</th></tr></thead>
+  <tbody>
+    <tr><td>0:30</td><td>about 75 words</td></tr>
+    <tr><td>1:00</td><td>about 150 words</td></tr>
+    <tr><td>2:30</td><td>about 375 words — a sensible script length</td></tr>
+    <tr><td>3:00</td><td>about 450 words — the absolute ceiling</td></tr>
+  </tbody>
+</table>
+
+<p>Write to 2:30, not 3:00. You will slow down when recording, and the title card
+eats time without using any of your words.</p>
+
+<h2>A five-beat shape that fits</h2>
+<table class="beat-table">
+  <thead><tr><th>Beat</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td>0:00–0:12<br>Title</td><td>A still card holding the six required facts. No narration needed; read the title aloud if you like.</td></tr>
+    <tr><td>0:12–0:30<br>Problem</td><td>One sentence on what was annoying, one on what you built. No architecture yet.</td></tr>
+    <tr><td>0:30–2:00<br>Demo</td><td>The software running. The longest beat by far. Show, do not describe.</td></tr>
+    <tr><td>2:00–2:30<br>Decision</td><td>One thing that was hard and how you solved it. This is where a project stops sounding like a tutorial.</td></tr>
+    <tr><td>2:30–2:45<br>Close</td><td>Name, thanks, and where the code lives.</td></tr>
+  </tbody>
+</table>
+
+<h2>Pre-flight, on the day</h2>
+<ul class="checklist">
+  <li><input type="checkbox" id="r1"><label for="r1">Notifications silenced (Windows: Focus assist / Do not disturb)</label></li>
+  <li><input type="checkbox" id="r2"><label for="r2">Browser tabs and bookmarks that name anything private are closed</label></li>
+  <li><input type="checkbox" id="r3"><label for="r3">No API keys, <code>.env</code> contents, or real passwords visible on screen</label></li>
+  <li><input type="checkbox" id="r4"><label for="r4">A demo account with believable sample data, not an empty screen</label></li>
+  <li><input type="checkbox" id="r5"><label for="r5">Screen resolution 1920×1080, recorder set to the same</label></li>
+  <li><input type="checkbox" id="r6"><label for="r6">Test recording of 20 seconds played back — picture and sound both present</label></li>
+  <li><input type="checkbox" id="r7"><label for="r7">Final file watched end to end before uploading</label></li>
+  <li><input type="checkbox" id="r8"><label for="r8">Uploaded, set to unlisted, link opened in a private window to prove it plays</label></li>
+</ul>
+
+<div class="footer-nav">
+  <a href="../lessons/0001-script-your-three-minutes.html">Lesson 1 — Script your three minutes</a>
+  <a href="https://cs50.harvard.edu/x/project/">CS50x project specification</a>
+</div>
+
+</main>
+<script src="../assets/checklist.js"></script>
+</body>
+</html>

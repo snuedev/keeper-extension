@@ -14,6 +14,9 @@
   --accent: light-dark(#b12a4b, #ff9cb5);
   --accent-ink: light-dark(#ffffff, #2a1018);
   --accent-soft: light-dark(#ffe3ea, #3a2029);
+  --new-note: light-dark(#ffc5d3, #ff9cb5);
+  --new-note-line: light-dark(#f4a3b8, #ff9cb5);
+  --new-note-ink: light-dark(#241c1f, #2a1018);
   --danger: light-dark(#8c1c34, #ff9e9e);
   --danger-ink: light-dark(#ffffff, #2a1018);
   --ring: light-dark(rgba(177, 42, 75, 0.35), rgba(255, 156, 181, 0.4));
@@ -35,6 +38,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* The browser hides [hidden] with a plain display: none, which any class that
+   sets display (flex, grid) quietly overrides. */
+[hidden] {
+  display: none !important;
 }
 
 /* A Chrome popup with no stated width collapses to fit its content, and is
@@ -269,6 +278,16 @@ body.in-tab {
   filter: brightness(1.08);
 }
 
+.button--new-note {
+  border-color: var(--new-note-line);
+  background-color: var(--new-note);
+  color: var(--new-note-ink);
+}
+
+.button--new-note:hover:not(:disabled) {
+  border-color: var(--new-note-line);
+}
+
 .button--google {
   display: flex;
   align-items: center;
@@ -317,6 +336,11 @@ body.in-tab {
   font-size: 14px;
   line-height: 1.25;
   text-align: center;
+}
+
+.button--icon svg {
+  display: block;
+  margin: 0 auto;
 }
 
 .button--quiet:hover:not(:disabled) {
@@ -379,12 +403,16 @@ body.in-tab {
   list-style: none;
 }
 
+.note-item {
+  position: relative;
+}
+
 .note {
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: 100%;
-  padding: 11px 13px;
+  padding: 11px 44px 11px 13px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background-color: var(--surface);
@@ -429,8 +457,17 @@ body.in-tab {
   margin-top: 4px;
   color: var(--muted);
   font-size: 11px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+}
+
+.note__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.note__delete:hover:not(:disabled) {
+  background-color: var(--accent-soft);
+  color: var(--danger);
 }
 
 .notes__empty {
@@ -521,6 +558,77 @@ body.in-tab {
 .button--danger-filled:hover:not(:disabled) {
   border-color: var(--danger);
   filter: brightness(1.1);
+}
+
+/* On a full-width button, where the quiet danger style would read as plain
+   text rather than something to press. */
+.button--danger-outline {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.button--danger-outline:hover:not(:disabled) {
+  border-color: var(--danger);
+  background-color: var(--accent-soft);
+}
+
+.confirm--stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm--stacked .confirm__text {
+  margin: 0;
+}
+
+/* Settings */
+
+.panel--settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background-color: var(--surface);
+}
+
+.settings__section > .button {
+  flex: 0 0 auto;
+}
+
+.settings__heading {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.settings__heading--danger {
+  color: var(--danger);
+}
+
+.settings__details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.settings__details dt {
+  color: var(--muted);
+}
+
+.settings__details dd {
+  margin: 0;
+  word-break: break-all;
 }
 
 @media (prefers-reduced-motion: reduce) {

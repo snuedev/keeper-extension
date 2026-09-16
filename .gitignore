@@ -74,5 +74,8 @@ node_modules/
 # Extension build output - load this folder in Chrome, do not commit it
 chrome-extension/dist/
 
+# Claude Code scratch worktrees
+.claude/
+
 # Extension signing keys - the public half belongs in manifest.json, never this
 *.pem
