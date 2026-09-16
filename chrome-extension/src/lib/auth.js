@@ -1,6 +1,7 @@
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
@@ -20,6 +21,10 @@ export function signUp(email, password) {
 
 export function signIn(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
+}
+
+export function sendPasswordReset(email) {
+  return sendPasswordResetEmail(auth, email);
 }
 
 // Run in the service worker rather than here: the consent window takes focus,
@@ -61,6 +66,7 @@ const MESSAGES = {
   'auth/invalid-credential': 'Email or password is incorrect.',
   'auth/invalid-email': 'That does not look like an email address.',
   'auth/missing-password': 'Enter a password.',
+  'auth/missing-email': 'Enter your email address.',
   'auth/email-already-in-use': 'An account already exists for that email.',
   'auth/weak-password': 'Passwords need to be at least 6 characters.',
   'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',

@@ -190,9 +190,38 @@ body.in-tab {
   font-size: 13px;
 }
 
+.form__notice {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+}
+
 .form__actions {
   display: flex;
   gap: 8px;
+}
+
+.link-button {
+  align-self: flex-end;
+  margin-top: -6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.link-button:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 /* Buttons */
