@@ -1,4 +1,4 @@
-# keeper-extension
+# Keeper Extension
 
 #### Video Demo:  <https://youtu.be/hh_KV_hu-V8>
 
@@ -11,7 +11,7 @@ toolbar icon — no page it injects into, no window to manage. See
 
 **Status:** Phases 0–4 complete. Accounts, notes, polish, and theming all work,
 as do deleting a note, deleting your account, and using either sign-in method on
-one address. What is left is the store listing.
+one address. 
 
 ## What it does
 
@@ -227,10 +227,10 @@ click the reload arrow.
 Watch out for the two different `public/` folders: `chrome-extension/public/` is
 part of the extension, while the top-level `public/` is the website.
 
-## A note on the font
+## A note on design choice
 
-Phase 4 briefly set the whole UI in Times New Roman. It did not look good — a
-newspaper serif at popup size reads cramped and fuzzy — so it was reverted to
+The extension was briefly set with the whole UI in Times New Roman. It did not look good since 
+it reads cramped and fuzzy especially at popup size, so it was reverted to
 the system font stack (`system-ui`, with `-apple-system` and `"Segoe UI"` behind
 it) at 14px, which suits the interface far better. `system-ui` means whichever
 interface font the operating system already uses, so Keeper renders in Segoe UI
