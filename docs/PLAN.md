@@ -359,19 +359,7 @@ reach for this if you actually see the symptom.
 
 ---
 
-## 7. Deliberately not in v1
-
-Password reset (add later, it's about ten lines) ·
-rich text or Markdown · tags and folders · right-click "save selection to Keeper"
-· sharing notes · offline editing · Firefox and Safari builds
-
-(Google sign-in was on this list and got built anyway — see §3.3 and Phase 4.)
-
----
-
 ## 8. Definition of done
-
-Mapped straight back to the original ask:
 
 - [ ] A user can create an account and log in
 - [ ] A logged-in user has a space to write notes about anything
