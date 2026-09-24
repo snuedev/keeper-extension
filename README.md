@@ -1,8 +1,10 @@
 # Keeper Extension
 
-#### Video Demo:  <https://youtu.be/hh_KV_hu-V8>
+#### Video Demo:    
+  <https://youtu.be/hh_KV_hu-V8>
 
-#### Description:  Keeper is a Chrome extension that gives you a private place to jot notes from
+#### Description:  
+  Keeper is a Chrome extension that gives you a private place to jot notes from
 anywhere in the browser. It lives entirely in the popup that hangs off the
 toolbar icon — no page it injects into, no window to manage. See
 [docs/PLAN.md](docs/PLAN.md) for the plan the build followed.
