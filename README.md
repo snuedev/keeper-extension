@@ -232,7 +232,12 @@ part of the extension, while the top-level `public/` is the website.
 The extension was briefly set with the whole UI in Times New Roman. It did not look good since 
 it reads cramped and fuzzy especially at popup size, so it was reverted to
 the system font stack (`system-ui`, with `-apple-system` and `"Segoe UI"` behind
-it) at 14px, which suits the interface far better. `system-ui` means whichever
+it) at 14px, which suits the interface much better. `system-ui` means whichever
 interface font the operating system already uses, so Keeper renders in Segoe UI
 Variable on Windows and SF Pro on macOS and sits inside Chrome rather than on
 top of it.
+
+## AI Disclosure and Acknowledgments
+
+Parts of this project were developed with assistance from generative AI tools:
+* **Anthropic Claude (Claude 5 Opus):** Used for architectural decision making, bug fixes, and Firebase integration.
